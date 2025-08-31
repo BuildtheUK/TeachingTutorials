@@ -107,13 +107,13 @@ public class CompulsoryTutorialMenu extends Gui
             {
                 tutorial = Utils.createItem(compulsoryBlock, 1,
                         TutorialGUIUtils.optionTitle(tutorials[i].getTutorialName()).decoration(TextDecoration.BOLD, true),
-                        TutorialGUIUtils.optionLore(Bukkit.getPlayer(tutorials[i].getUUIDOfAuthor()).getName()));
+                        TutorialGUIUtils.optionLore(Bukkit.getOfflinePlayer(tutorials[i].getUUIDOfAuthor()).getName()));
             }
             else
             {
                 tutorial = Utils.createItem(nonCompulsoryBlock, 1,
                         TutorialGUIUtils.optionTitle(tutorials[i].getTutorialName()),
-                        TutorialGUIUtils.optionLore(Bukkit.getPlayer(tutorials[i].getUUIDOfAuthor()).getName()));
+                        TutorialGUIUtils.optionLore(Bukkit.getOfflinePlayer(tutorials[i].getUUIDOfAuthor()).getName()));
             }
             inventory.setItem(i, tutorial);
         }
@@ -171,8 +171,11 @@ public class CompulsoryTutorialMenu extends Gui
                     //Toggles whether the tutorial is compulsory
                     tutorials[iSlot].toggleCompulsory(plugin);
 
+                    //Refresh tutorial data
+                    tutorials = Tutorial.fetchAll(true, false, null, plugin.getDBConnection(), plugin.getLogger());
+
                     //Refreshes the display
-                    open(user.player);
+                    refresh();
                 }
             });
         }
