@@ -91,10 +91,11 @@ public class StepPlaythrough
 
         if (parentStagePlaythrough.tutorialPlaythrough.getCurrentPlaythroughMode().equals(PlaythroughMode.CreatingLocation))
             //Initialises location step
-            this.locationStep = new LocationStep(parentStagePlaythrough.tutorialPlaythrough.location, step, false);
+            this.locationStep = new LocationStep(parentStagePlaythrough.tutorialPlaythrough.location, step, false, plugin.getLogger());
         else
             //Gets the location specific data
-            this.locationStep = LocationStep.getFromStepAndLocation(parentStagePlaythrough.tutorialPlaythrough.location, step);
+            this.locationStep = LocationStep.getFromStepAndLocation(parentStagePlaythrough.tutorialPlaythrough.location,
+                    step, plugin.getDBConnection(), plugin.getLogger());
 
         //Initialises the video link listener
         videoLinkListener = new VideoLinkCommandListener(this.plugin, this.player, this.locationStep);
@@ -206,7 +207,9 @@ public class StepPlaythrough
         switch (displayType)
         {
             case hologram:
-                instructions = new Hologram(this.locationStep.getHologramLocation(world), this.parentStagePlaythrough.tutorialPlaythrough, ChatColor.AQUA +"" +ChatColor.UNDERLINE +ChatColor.BOLD +szStepName, this.locationStep.getInstructions(), this.step.getStepID());
+                instructions = new Hologram(this.locationStep.getHologramLocation(world), this.parentStagePlaythrough.tutorialPlaythrough,
+                        ChatColor.AQUA +"" +ChatColor.UNDERLINE +ChatColor.BOLD +szStepName, this.locationStep.getInstructions(),
+                        this.step.getStepID(), plugin.getConfig().getInt("Hologram_Max_Width"));
                 instructions.showHologram();
                 break;
             default:
@@ -539,7 +542,7 @@ public class StepPlaythrough
                     parentStagePlaythrough.tutorialPlaythrough.getCreatorOrStudent().mainGui = menu;
 
                     //Opens the step editor menu
-                    menu.open(parentStagePlaythrough.tutorialPlaythrough.getCreatorOrStudent());
+                    menu.open(parentStagePlaythrough.tutorialPlaythrough.getCreatorOrStudent().player);
                 }
             }
 
@@ -603,7 +606,7 @@ public class StepPlaythrough
                 //Closes the inventory
                 Bukkit.getScheduler().runTask(plugin, () -> player.closeInventory());
 
-                locationStep.storeDetailsInDB(plugin);
+                locationStep.storeDetailsInDB(plugin.getDBConnection(), plugin.getLogger());
                 parentStagePlaythrough.nextStep(false);
             }
             else
@@ -662,13 +665,13 @@ public class StepPlaythrough
         {
             //Compiles the command to fetch steps
             sql = "SELECT * FROM `Steps` WHERE `StageID` = "+ stagePlaythrough.getStage().getStageID() +" ORDER BY 'StepInStage' ASC";
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             //Executes the query
             resultSet = SQL.executeQuery(sql);
             while (resultSet.next())
             {
-                Step step = new Step(resultSet.getInt("StepID"), resultSet.getInt("StepInStage"), resultSet.getString("StepName"), resultSet.getString("InstructionDisplay"));
+                Step step = new Step(resultSet.getInt("StepID"), resultSet.getInt("StepInStage"), resultSet.getString("StepName"), resultSet.getString("InstructionDisplay"), plugin.getLogger());
                 StepPlaythrough stepPlaythrough = new StepPlaythrough(player, plugin, stagePlaythrough, step);
                 stepPlaythroughs.add(stepPlaythrough);
             }

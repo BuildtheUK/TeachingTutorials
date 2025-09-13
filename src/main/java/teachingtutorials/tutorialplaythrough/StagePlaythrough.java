@@ -429,7 +429,7 @@ public class StagePlaythrough
         {
             //Compiles the command to fetch stages
             sql = "SELECT * FROM `Stages` WHERE `TutorialID` = "+tutorialPlaythrough.getTutorial().getTutorialID() +" ORDER BY 'Order' ASC";
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             //Executes the query
             resultSet = SQL.executeQuery(sql);

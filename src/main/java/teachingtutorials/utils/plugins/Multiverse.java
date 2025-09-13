@@ -5,10 +5,9 @@ import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import org.bukkit.*;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
-import teachingtutorials.TeachingTutorials;
-import teachingtutorials.utils.Utils;
 
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handles all Multiverse operations
@@ -20,13 +19,13 @@ public class Multiverse
      * @param name The name of the new world
      * @return Whether the new world was created successfully
      */
-    public static boolean createVoidWorld(String name)
+    public static boolean createVoidWorld(String name, Logger logger)
     {
         MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
 
         if (core == null)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
+            logger.log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
             return false;
         }
 
@@ -56,7 +55,7 @@ public class Multiverse
         World world = Bukkit.getWorld(name);
 
         if (world == null) {
-            TeachingTutorials.getInstance().getLogger().warning("World is null!");
+            logger.warning("World is null!");
             return false;
         }
 
@@ -80,12 +79,12 @@ public class Multiverse
      * @param name
      * @return Whether such a world exists
      */
-    public static boolean hasWorld(String name)
+    public static boolean hasWorld(String name, Logger logger)
     {
         MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
 
         if (core == null) {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
+            logger.log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
             return false;
         }
 
@@ -103,12 +102,12 @@ public class Multiverse
      * @param name The name of the world to delete
      * @return Whether the world was deleted
      */
-    public static boolean deleteWorld(String name)
+    public static boolean deleteWorld(String name, Logger logger)
     {
         MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
 
         if (core == null) {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
+            logger.log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
             return false;
         }
 

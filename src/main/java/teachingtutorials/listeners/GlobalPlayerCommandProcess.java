@@ -60,8 +60,7 @@ public class GlobalPlayerCommandProcess implements Listener
                 if (user.mainGui != null)
                 {
                     //If not then open it after refreshing its contents.
-                    user.mainGui.refresh();
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
 
                 //If no gui exists open the learning menu
@@ -71,7 +70,7 @@ public class GlobalPlayerCommandProcess implements Listener
                     user.mainGui = new MainMenu(plugin, user);
 
                     //Opens the gui
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             }
         }

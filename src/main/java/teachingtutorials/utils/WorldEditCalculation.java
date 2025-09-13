@@ -35,6 +35,9 @@ import java.util.logging.Logger;
  */
 public class WorldEditCalculation
 {
+    /** A reference to an instance of the TeachingTutorials plugin */
+    private final TeachingTutorials plugin;
+
     /** The tutorial playthrough for which the WE task calculation is ultimately a part of */
     private final TutorialPlaythrough tutorialPlaythrough;
 
@@ -82,8 +85,9 @@ public class WorldEditCalculation
      * @param szWorldEditCommand The full command to run
      * @param tutorialPlaythrough The tutorial playthrough which this task belongs to
      */
-    public WorldEditCalculation(String szWorldEditCommand, RegionSelector regionSelector, TutorialPlaythrough tutorialPlaythrough, int iTaskID, VirtualBlockGroup<Location, BlockData> virtualBlocks)
+    public WorldEditCalculation(TeachingTutorials plugin, String szWorldEditCommand, RegionSelector regionSelector, TutorialPlaythrough tutorialPlaythrough, int iTaskID, VirtualBlockGroup<Location, BlockData> virtualBlocks)
     {
+        this.plugin = plugin;
         this.szWorldEditCommand = szWorldEditCommand;
         this.regionSelector = regionSelector;
         this.tutorialPlaythrough = tutorialPlaythrough;
@@ -93,7 +97,7 @@ public class WorldEditCalculation
         Actor consoleActor = BukkitAdapter.adapt(Bukkit.getConsoleSender());
 
         //Creates a listener to listen out for WorldEdit events and insert the recorder extent into the correct one
-        worldEditEventListener = new WorldEditEventListener(consoleActor, this, virtualBlocks, iTaskID);
+        worldEditEventListener = new WorldEditEventListener(consoleActor, this, virtualBlocks, iTaskID, plugin.getLogger());
     }
 
     /**
@@ -108,18 +112,18 @@ public class WorldEditCalculation
         {
             return;
         }
-        teachingtutorials.utils.WorldEdit.setCalculationInProgress();
+        teachingtutorials.utils.WorldEdit.setCalculationInProgress(plugin.getLogger());
 
         //Console output
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Running calculation of the" +
+        plugin.getLogger().log(Level.INFO, "Running calculation of the" +
                 "WorldEdit blocks on task: "+iTaskID);
 
         //Makes the selection through the console, then registers the listener, then runs the WorldEdit command through
         // the console and
-        Bukkit.getScheduler().runTask(TeachingTutorials.getInstance(), () ->
+        Bukkit.getScheduler().runTask(plugin, () ->
         {
             //Sets the selection
-            TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Adjusting the selection on task: "+iTaskID);
+            plugin.getLogger().log(Level.INFO, "Adjusting the selection on task: "+iTaskID);
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "/world "+tutorialPlaythrough.getLocation().getLocationID());
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "/pos1 " + ((CuboidRegion) regionSelector.getRegion()).getPos1().toParserString());
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "/pos2 " + ((CuboidRegion) regionSelector.getRegion()).getPos2().toParserString());
@@ -143,10 +147,10 @@ public class WorldEditCalculation
         {
             //If blocks are currently on the world, will keep delaying it until they are off
 
-            TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Delaying the real world block recording and command run on task: "+iTaskID);
+            plugin.getLogger().log(Level.INFO, "Delaying the real world block recording and command run on task: "+iTaskID);
 
             //Wait 4 ticks and try again
-            Bukkit.getScheduler().runTaskLater(TeachingTutorials.getInstance(), () -> recordRealBlocksAndSetVirtualsAndRunCommand(), 4L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recordRealBlocksAndSetVirtualsAndRunCommand(), 4L);
 
             return;
         }
@@ -154,16 +158,16 @@ public class WorldEditCalculation
         else
         {
             //Marks that virtual blocks have been placed on the real world
-            teachingtutorials.utils.WorldEdit.setVirtualBlocksOnRealWorld();
+            teachingtutorials.utils.WorldEdit.setVirtualBlocksOnRealWorld(plugin.getLogger());
 
             // ---------------- Begin Placing Virtual Blocks ----------------
-            Bukkit.getScheduler().runTask(TeachingTutorials.getInstance(), new Runnable() {
+            Bukkit.getScheduler().runTask(plugin, new Runnable() {
                 @Override
                 public void run() {
-                    TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.AQUA +"Setting the virtual blocks to the world on task: "+iTaskID);
+                    plugin.getLogger().log(Level.INFO, ChatColor.AQUA +"Setting the virtual blocks to the world on task: "+iTaskID);
 
                     //Get the list of virtual blocks
-                    VirtualBlockGroup[] virtualBlockGroups = TeachingTutorials.getInstance().getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
+                    VirtualBlockGroup[] virtualBlockGroups = plugin.getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
 
                     //Declares the temporary VirtualBlockGroup object
                     VirtualBlockGroup<Location, BlockData> virtualBlockGroup;
@@ -182,10 +186,10 @@ public class WorldEditCalculation
                         }
 
                         //Call for these blocks to be placed on the world
-                        virtualBlockGroup.addBlocksToWorld();
+                        virtualBlockGroup.addBlocksToWorld(plugin.getLogger());
                     }
 
-                    TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.AQUA +"Finished recording the world blocks and setting virtual blocks on task: "+iTaskID);
+                    plugin.getLogger().log(Level.INFO, ChatColor.AQUA +"Finished recording the world blocks and setting virtual blocks on task: "+iTaskID);
 
                     //Once the chunks have started being processed it will put all of the blocks back
                     bBlocksRequireReset.set(true);
@@ -196,15 +200,15 @@ public class WorldEditCalculation
                     try
                     {
                         WorldEdit.getInstance().getEventBus().register(worldEditEventListener);
-                        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.AQUA +"Registered the EditSessionEvent listener on task: "+iTaskID);
+                        plugin.getLogger().log(Level.INFO, ChatColor.AQUA +"Registered the EditSessionEvent listener on task: "+iTaskID);
                     }
                     catch (Exception e)
                     {
-                        TeachingTutorials.getInstance().getLogger().log(Level.WARNING,  "Error registering WorldEdit event listener on task: "+iTaskID, e);
+                        plugin.getLogger().log(Level.WARNING,  "Error registering WorldEdit event listener on task: "+iTaskID, e);
                     }
 
                     //Runs the command
-                    TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.AQUA +"Sending command for task: "+iTaskID);
+                    plugin.getLogger().log(Level.INFO, ChatColor.AQUA +"Sending command for task: "+iTaskID);
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), szWorldEditCommand);
                 }
             });
@@ -218,9 +222,9 @@ public class WorldEditCalculation
     {
         //Updates the queue system, unblocking the queue
         teachingtutorials.utils.WorldEdit.pendingCalculations.remove(this);
-        teachingtutorials.utils.WorldEdit.setCalculationFinished();
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Unblocked calculation queue from task: " +iTaskID);
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.GREEN +"There are " +teachingtutorials.utils.WorldEdit.pendingCalculations.size() +" calculations remaining in the queue");
+        teachingtutorials.utils.WorldEdit.setCalculationFinished(plugin.getLogger());
+        plugin.getLogger().log(Level.INFO, "Unblocked calculation queue from task: " +iTaskID);
+        plugin.getLogger().log(Level.INFO, ChatColor.GREEN +"There are " +teachingtutorials.utils.WorldEdit.pendingCalculations.size() +" calculations remaining in the queue");
     }
 
     /**
@@ -231,7 +235,7 @@ public class WorldEditCalculation
     void tryResettingWorld()
     {
         //Get a local reference to the logger
-        Logger logger = TeachingTutorials.getInstance().getLogger();
+        Logger logger = plugin.getLogger();
 
         //Checks whether the blocks have already been reset and if not then mark it as having been reset so that something else doesn't access it
         if (bBlocksRequireReset.getAndSet(false))
@@ -239,12 +243,12 @@ public class WorldEditCalculation
             logger.log(Level.INFO, ChatColor.GREEN +"About to run the resetting of the blocks on the world for task: " +iTaskID);
 
             //Run the resetting
-            Bukkit.getScheduler().runTask(TeachingTutorials.getInstance(), new Runnable() {
+            Bukkit.getScheduler().runTask(plugin, new Runnable() {
                 @Override
                 public void run()
                 {
                     //Get the list of virtual blocks
-                    VirtualBlockGroup[] virtualBlockGroups = TeachingTutorials.getInstance().getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
+                    VirtualBlockGroup[] virtualBlockGroups = plugin.getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
 
                     //Declares the temporary list object
                     VirtualBlockGroup<Location, BlockData> virtualBlockGroup;
@@ -265,27 +269,27 @@ public class WorldEditCalculation
                         }
 
                         //Call for the world blocks to be reset
-                        virtualBlockGroup.resetWorld();
+                        virtualBlockGroup.resetWorld(plugin);
                     }
 
                     //Wait a few ticks before saying that the blocks have been set to give it a chance to set the blocks before the next calculation
-                    logger.log(Level.INFO,ChatColor.DARK_PURPLE +"In " +TeachingTutorials.getInstance().getConfig().getLong("BlockResetDelay") +" ticks we will mark the blocks as having been reset for task: " +iTaskID);
+                    logger.log(Level.INFO,ChatColor.DARK_PURPLE +"In " +plugin.getConfig().getLong("BlockResetDelay") +" ticks we will mark the blocks as having been reset for task: " +iTaskID);
 
                     //Mark blocks as reset and unblock calculations queue after a time
-                    Bukkit.getScheduler().runTaskLater(TeachingTutorials.getInstance(), new Runnable() {
+                    Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
                         @Override
                         public void run() {
                             logger.log(Level.INFO, ChatColor.DARK_PURPLE +"Marking the blocks as having been reset for task: " +iTaskID);
 
                             //Marks that virtual blocks have been taken off the real world
-                            teachingtutorials.utils.WorldEdit.setVirtualBlocksOffRealWorld();
+                            teachingtutorials.utils.WorldEdit.setVirtualBlocksOffRealWorld(plugin.getLogger());
 
                             //Unblock the calculation queue
                             unblockCalculationQueue();
 
                             logger.log(Level.INFO,ChatColor.DARK_PURPLE +"Marked the blocks as having been reset for task: " +iTaskID);
                         }
-                    }, TeachingTutorials.getInstance().getConfig().getLong("BlockResetDelay"));
+                    }, plugin.getConfig().getLong("BlockResetDelay"));
                 }
             });
         }
@@ -300,7 +304,7 @@ public class WorldEditCalculation
     {
         this.worldEditEventListener.unregisterWorldChangeListener();
         tryResettingWorld();
-        teachingtutorials.utils.WorldEdit.setCalculationFinished();
+        teachingtutorials.utils.WorldEdit.setCalculationFinished(plugin.getLogger());
     }
 }
 
@@ -321,7 +325,7 @@ class BlockChangeRecorderExtentFAWE extends AbstractDelegateExtent implements IB
     private final int iTaskID;
 
     /** Get a local reference to the logger */
-    private final Logger logger = TeachingTutorials.getInstance().getLogger();
+    private final Logger logger;
 
 
     /**
@@ -331,9 +335,10 @@ class BlockChangeRecorderExtentFAWE extends AbstractDelegateExtent implements IB
      * @param virtualBlocks A reference to the list of virtual blocks to add to
      * @param iTaskID A copy of the ID of the task for which this WE process is for
      */
-    public BlockChangeRecorderExtentFAWE(Extent originalExtent, WorldEditCalculation worldEditCalculation, VirtualBlockGroup<Location, BlockData> virtualBlocks, int iTaskID)
+    public BlockChangeRecorderExtentFAWE(Extent originalExtent, WorldEditCalculation worldEditCalculation, VirtualBlockGroup<Location, BlockData> virtualBlocks, int iTaskID, Logger logger)
     {
         super(originalExtent);
+        this.logger = logger;
         this.worldEditCalculation = worldEditCalculation;
         this.virtualBlocks = virtualBlocks;
         this.iTaskID = iTaskID;
@@ -529,7 +534,7 @@ class WorldEditEventListener extends Object
     int iTaskID;
 
     /** Get a local reference to the logger */
-    private final Logger logger = TeachingTutorials.getInstance().getLogger();
+    private final Logger logger;
 
     /**
      * Constructs the listener
@@ -538,8 +543,9 @@ class WorldEditEventListener extends Object
      * @param virtualBlocksGroups A reference to the virtual blocks group which to add any calculated virtual blocks to
      * @param iTaskID A copy of the ID of the task for which we are calculating the virtual blocks
      */
-    public WorldEditEventListener(Actor consoleActor, WorldEditCalculation worldEditCalculation, VirtualBlockGroup<Location, BlockData> virtualBlocksGroups, int iTaskID)
+    public WorldEditEventListener(Actor consoleActor, WorldEditCalculation worldEditCalculation, VirtualBlockGroup<Location, BlockData> virtualBlocksGroups, int iTaskID, Logger logger)
     {
+        this.logger = logger;
         this.consoleActor = consoleActor;
         this.parentCalculation = worldEditCalculation;
         this.virtualBlocksGroups = virtualBlocksGroups;
@@ -573,7 +579,7 @@ class WorldEditEventListener extends Object
         }
 
         //Creates the new recorder extent
-        AbstractDelegateExtent blockChangeRecorderExtent = new BlockChangeRecorderExtentFAWE(event.getExtent(), parentCalculation, virtualBlocksGroups, iTaskID);
+        AbstractDelegateExtent blockChangeRecorderExtent = new BlockChangeRecorderExtentFAWE(event.getExtent(), parentCalculation, virtualBlocksGroups, iTaskID, logger);
 
         //Updates the extent of the edit session to be that of a block recording extent
         //The block recording extent means that block changes are recorded in the set block mechanism

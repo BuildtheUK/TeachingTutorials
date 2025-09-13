@@ -43,7 +43,7 @@ public class Step
      * @param szInstructionDisplayType How the instructions should be displayed for this step - must be a value of
      *                                 Display.DisplayType
      */
-    public Step(int iStepID, int iStepInStage, String szStepName, String szInstructionDisplayType)
+    public Step(int iStepID, int iStepInStage, String szStepName, String szInstructionDisplayType, Logger logger)
     {
         this.iStepID = iStepID;
         this.iStepInStage = iStepInStage;
@@ -57,7 +57,7 @@ public class Step
         }
         catch (IllegalArgumentException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "The step instruction display type was not properly specified ("+szInstructionDisplayType +"), reverting to chat", e);
+            logger.log(Level.SEVERE, "The step instruction display type was not properly specified ("+szInstructionDisplayType +"), reverting to chat", e);
             displayType = Display.DisplayType.chat;
         }
         this.instructionDisplayType = displayType;

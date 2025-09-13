@@ -1,9 +1,11 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
@@ -43,7 +45,7 @@ public class LibraryMenu extends Gui
     public LibraryMenu(TeachingTutorials plugin, User user, Tutorial[] tutorials, LessonObject[] userCurrentLesson)
     {
         //Sets up the menu with the icons already in place
-        super(getGUI(tutorials));
+        super(plugin.getTutGuiManager(), getGUI(tutorials));
         this.plugin = plugin;
         this.user = user;
         this.tutorials = tutorials;
@@ -142,17 +144,12 @@ public class LibraryMenu extends Gui
         iRows = iDiv+2;
 
         //Adds back button
-        setAction((iRows * 9) - 1, new Gui.guiAction() {
+        setAction((iRows * 9) - 1, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent e) {
                 delete();
-                u.mainGui = new MainMenu(plugin, user);
-                u.mainGui.open(u);
+                user.mainGui = new MainMenu(plugin, user);
+                user.mainGui.open(user.player);
             }
         });
 
@@ -162,14 +159,9 @@ public class LibraryMenu extends Gui
         for (i = 0 ; i < tutorials.length ; i++)
         {
             int iSlot = i;
-            setAction(iSlot, new Gui.guiAction() {
+            setAction(iSlot, new GuiAction() {
                 @Override
-                public void rightClick(User user) {
-                    leftClick(user);
-                }
-
-                @Override
-                public void leftClick(User user) {
+                public void click(InventoryClickEvent e) {
                     startTutorial(plugin, lessons, user, LibraryMenu.this, tutorials[iSlot], null);
                 }
             });
@@ -203,7 +195,7 @@ public class LibraryMenu extends Gui
                         bLessonFound = true;
 
                         user.mainGui = new LessonContinueConfirmer(plugin, user, parentGui, lesson, "You have a lesson at this location already");
-                        user.mainGui.open(user);
+                        user.mainGui.open(user.player);
 
                         //Break, let the other menu take over
                         break;
@@ -214,7 +206,7 @@ public class LibraryMenu extends Gui
                     bLessonFound = true;
                     //If not then open confirmation menu
                     user.mainGui = new LessonContinueConfirmer(plugin, user, parentGui, lesson, "You have a lesson for this tutorial already");
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
 
                     //Break, let the other menu take over
                     break;
@@ -245,18 +237,17 @@ public class LibraryMenu extends Gui
     /**
      * Clears items from the GUI, recreates the items and then opens the menu
      */
-    @Override
     public void refresh() {
         //Clears items from the gui
-        this.clearGui();
+        this.clear();
 
         //Adds icons to the gui
-        this.getInventory().setContents(getGUI(tutorials).getContents());
+        this.setItemsFromInventory(getGUI(tutorials));
 
         //Adds click actions to the gui
         this.setActions();
 
         //Opens the gui
-        this.open(user);
+        this.open(user.player);
     }
 }

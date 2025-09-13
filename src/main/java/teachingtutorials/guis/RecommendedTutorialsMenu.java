@@ -1,6 +1,8 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialobjects.LessonObject;
@@ -32,7 +34,7 @@ public class RecommendedTutorialsMenu extends Gui
 
     public RecommendedTutorialsMenu(TeachingTutorials plugin, MainMenu mainMenu, User user, TutorialRecommendation[] tutorialRecommendations)
     {
-        super(54, TutorialGUIUtils.inventoryTitle("Recommended Tutorials"));
+        super(plugin.getTutGuiManager(), 54, TutorialGUIUtils.inventoryTitle("Recommended Tutorials"));
         this.plugin = plugin;
         this.parentGui = mainMenu;
         this.user = user;
@@ -49,16 +51,11 @@ public class RecommendedTutorialsMenu extends Gui
         this.iPage = 1;
 
         //Back button
-        setItem(53, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Back to Main Menu")), new guiAction() {
+        setItem(53, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Back to Main Menu")), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 user.mainGui = parentGui;
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
                 delete();
             }
         });
@@ -93,13 +90,9 @@ public class RecommendedTutorialsMenu extends Gui
                     TutorialGUIUtils.optionTitle(tutorial.getTutorialName()),
                     TutorialGUIUtils.optionLore("Recommended by " +tutorialRecommendations[i].getRecommenderName()));
 
-            super.setItem(i-iStart, lesson, new guiAction() {
+            super.setItem(i-iStart, lesson, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     LibraryMenu.startTutorial(plugin, LessonObject.getUnfinishedLessonsOfPlayer(user.player.getUniqueId(), plugin.getDBConnection(), plugin.getLogger()),
                             user, RecommendedTutorialsMenu.this, tutorial, location);
                 }
@@ -112,17 +105,13 @@ public class RecommendedTutorialsMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page back"));
-            super.setItem(45, pageBack, new guiAction() {
+            super.setItem(45, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     iPage--;
                     refresh();
                     user.mainGui = RecommendedTutorialsMenu.this;
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             });
         }
@@ -133,17 +122,13 @@ public class RecommendedTutorialsMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page forwards"));
-            super.setItem(53, pageBack, new guiAction() {
+            super.setItem(53, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     iPage++;
                     refresh();
                     user.mainGui = RecommendedTutorialsMenu.this;
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             });
         }
@@ -154,10 +139,9 @@ public class RecommendedTutorialsMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh()
     {
-        this.clearGui();
+        this.clear();
 
         this.addItems();
     }

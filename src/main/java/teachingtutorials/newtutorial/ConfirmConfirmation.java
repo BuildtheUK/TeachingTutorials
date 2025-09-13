@@ -2,9 +2,10 @@ package teachingtutorials.newtutorial;
 
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Material;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import teachingtutorials.guis.TutorialGUIUtils;
-import teachingtutorials.utils.User;
 import teachingtutorials.utils.Utils;
 
 /**
@@ -28,7 +29,7 @@ class ConfirmConfirmation extends Gui
      */
     public ConfirmConfirmation(Gui parentMenu, Runnable deleteAction, TextComponent confirmLore, TextComponent cancelLore)
     {
-        super(27, TutorialGUIUtils.inventoryTitle("Tutorial is ready to add. Are you?"));
+        super(parentMenu.getManager(), 27, TutorialGUIUtils.inventoryTitle("Tutorial is ready to add. Are you?"));
         this.parentMenu = parentMenu;
         this.deleteAction = deleteAction;
         this.confirmLore = confirmLore;
@@ -39,40 +40,21 @@ class ConfirmConfirmation extends Gui
     private void addItems()
     {
         this.setItem(11, Utils.createItem(Material.EMERALD, 1, TutorialGUIUtils.optionTitle("Confirm save"), confirmLore),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         deleteAction.run();
                         ConfirmConfirmation.this.delete();
                     }
                 });
 
         this.setItem(15, Utils.createItem(Material.LECTERN, 1, TutorialGUIUtils.optionTitle("Cancel"), cancelLore),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
-                        parentMenu.open(u);
+                    public void click(InventoryClickEvent event) {
+                        parentMenu.open((Player) event.getWhoClicked());
                         ConfirmConfirmation.this.delete();
                     }
                 });
-    }
-
-    /**
-     * Refresh the gui.
-     * This usually involves clearing the content and recreating it.
-     */
-    @Override
-    public void refresh() {
-
     }
 }

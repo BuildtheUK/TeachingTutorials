@@ -2,9 +2,10 @@ package teachingtutorials.guis.adminscreators;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
 import teachingtutorials.tutorialobjects.Tutorial;
 import teachingtutorials.utils.User;
@@ -35,7 +36,7 @@ public class CreatorTutorialsMenu extends Gui
      */
     public CreatorTutorialsMenu(TeachingTutorials plugin, User user, Tutorial[] tutorials)
     {
-        super(calculateNumRows(tutorials.length)*9, inventoryName);
+        super(plugin.getTutGuiManager(), calculateNumRows(tutorials.length)*9, inventoryName);
         this.plugin = plugin;
         this.user = user;
         this.tutorials = tutorials;
@@ -63,33 +64,23 @@ public class CreatorTutorialsMenu extends Gui
             setItem(i, Utils.createItem(Material.WRITTEN_BOOK, 1,
                             TutorialGUIUtils.optionTitle(tutorials[i].getTutorialName()),
                             TutorialGUIUtils.optionLore("Click to manage Tutorial")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-
-                        @Override
-                        public void leftClick(User u) {
-                            u.mainGui = new TutorialManageMenu(plugin, user, tutorials[finalI], CreatorTutorialsMenu.this);
-                            u.mainGui.open(u);
+                        public void click(InventoryClickEvent e) {
+                            user.mainGui = new TutorialManageMenu(plugin, user, tutorials[finalI], CreatorTutorialsMenu.this);
+                            user.mainGui.open(user.player);
                         }
                     });
         }
 
         //Adds back button
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.backButton("Back to creator menu"));
-        setItem((calculateNumRows(tutorials.length) * 9) - 1, back, new guiAction() {
+        setItem((calculateNumRows(tutorials.length) * 9) - 1, back, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent e) {
                 delete();
-                u.mainGui = new CreatorMenu(plugin, user);
-                u.mainGui.open(u);
+                user.mainGui = new CreatorMenu(plugin, user);
+                user.mainGui.open(user.player);
             }
         });
     }
@@ -97,16 +88,15 @@ public class CreatorTutorialsMenu extends Gui
     /**
      * Clears items from the GUI, recreates the items and then opens the menu
      */
-    @Override
     public void refresh() {
         //Clears items from the gui
-        this.clearGui();
+        this.clear();
 
         //Adds the items back
         this.addItems();
 
         //Opens the gui
-        this.open(user);
+        this.open(user.player);
     }
 
     /**

@@ -1,14 +1,15 @@
 package teachingtutorials.guis.adminscreators;
 
+import net.bteuk.minecraft.gui.GuiAction;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.Gui;
 import teachingtutorials.guis.LessonContinueConfirmer;
 import teachingtutorials.guis.TutorialGUIUtils;
-import teachingtutorials.listeners.texteditorbooks.BookCloseAction;
-import teachingtutorials.listeners.texteditorbooks.TextEditorBookListener;
+import net.bteuk.minecraft.texteditorbooks.*;
 import teachingtutorials.tutorialobjects.LessonObject;
 import teachingtutorials.tutorialobjects.Location;
 import teachingtutorials.tutorialplaythrough.Lesson;
@@ -35,7 +36,7 @@ public class LocationManageMenu extends Gui
 
     public LocationManageMenu(TeachingTutorials plugin, User user, TutorialLocationsMenu tutorialLocationsMenu, Location location)
     {
-        super(27, TutorialGUIUtils.inventoryTitle(location.getLocationName()));
+        super(plugin.getTutGuiManager(), 27, TutorialGUIUtils.inventoryTitle(location.getLocationName()));
 
         this.plugin = plugin;
         this.user = user;
@@ -44,7 +45,7 @@ public class LocationManageMenu extends Gui
 
         this.lessons = LessonObject.getUnfinishedLessonsOfPlayer(user.player.getUniqueId(), plugin.getDBConnection(), plugin.getLogger());
 
-        this.nameEditor = new TextEditorBookListener(plugin, user, this, "Edit Location Name", new BookCloseAction() {
+        this.nameEditor = new TextEditorBookListener(plugin, user.player, this, "Edit Location Name", new BookCloseAction() {
             @Override
             public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
                 //Unregister the listener
@@ -64,10 +65,15 @@ public class LocationManageMenu extends Gui
             }
 
             @Override
+            public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
+            }
+
+            @Override
             public void runPostClose()
             {
                 //Updates the title of the menu and opens the inventory with the new title
-                LocationManageMenu.super.editName(TutorialGUIUtils.inventoryTitle(location.getLocationName()), user);
+                LocationManageMenu.super.editName(TutorialGUIUtils.inventoryTitle(location.getLocationName()), user.player);
                 //Refreshes the parent menu with the new name
                 tutorialLocationsMenu.refreshLocationIcons();
             }
@@ -91,28 +97,18 @@ public class LocationManageMenu extends Gui
             inUseIcon = Utils.createItem(Material.BOOK, 1, TutorialGUIUtils.optionTitle("Not In Use"),
                     TutorialGUIUtils.optionLore("Click to set in use"));
 
-        super.setItem(10, inUseIcon, new guiAction() {
+        super.setItem(10, inUseIcon, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
-                location.toggleInUse();
+            public void click(InventoryClickEvent event) {
+                location.toggleInUse(plugin.getDBConnection(), plugin.getLogger());
                 refresh();
             }
         });
 
         //Teleport to location
-        super.setItem(12, Utils.createItem(Material.MAP, 1, TutorialGUIUtils.optionTitle("Teleport to Location")), new guiAction() {
+        super.setItem(12, Utils.createItem(Material.MAP, 1, TutorialGUIUtils.optionTitle("Teleport to Location")), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 double[] startCoordinates = Location.getStartCoordinatesOfLocation(plugin.getDBConnection(), plugin.getLogger(), location.getLocationID());
                 if (startCoordinates == null)
                 {
@@ -123,22 +119,17 @@ public class LocationManageMenu extends Gui
                     org.bukkit.Location startLocation = GeometricUtils.convertToBukkitLocation(location.getWorld(), startCoordinates[0], startCoordinates[1]);
                     startLocation.setYaw((float) startCoordinates[2]);
                     startLocation.setPitch((float) startCoordinates[3]);
-                    u.player.teleport(startLocation);
-                    u.player.closeInventory();
+                    user.player.teleport(startLocation);
+                    user.player.closeInventory();
                 }
             }
         });
 
 
         //Start lesson with this location
-        super.setItem(14, Utils.createItem(Material.LECTERN, 1, TutorialGUIUtils.optionTitle("Start Lesson"), TutorialGUIUtils.optionLore("Start a lesson with this location")), new guiAction() {
+        super.setItem(14, Utils.createItem(Material.LECTERN, 1, TutorialGUIUtils.optionTitle("Start Lesson"), TutorialGUIUtils.optionLore("Start a lesson with this location")), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 startTutorial(location);
             }
         });
@@ -146,30 +137,21 @@ public class LocationManageMenu extends Gui
         //Change name
         ItemStack changeName = Utils.createItem(Material.NAME_TAG, 1, TutorialGUIUtils.optionTitle("Change Location Name"),
                 TutorialGUIUtils.optionLore("Update the name of this location"));
-        super.setItem(16, changeName, new guiAction() {
+        super.setItem(16, changeName, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
-                u.player.sendMessage(Display.aquaText("Use the name editor book to enter a new name. It must be no more than 100 characters"));
+            public void click(InventoryClickEvent event) {
+                user.player.sendMessage(Display.aquaText("Use the name editor book to enter a new name. It must be no more than 100 characters"));
                 nameEditor.startEdit("Location Name Editor");
             }
         });
 
         //Back
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.backButton("Back to tutorial locations menu"));
-        setItem(26, back, new guiAction() {
+        setItem(26, back, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
-                u.mainGui = tutorialLocationsMenu;
-                u.mainGui.open(u);
+            public void click(InventoryClickEvent event) {
+                user.mainGui = tutorialLocationsMenu;
+                user.mainGui.open(user.player);
             }
         });
     }
@@ -194,7 +176,7 @@ public class LocationManageMenu extends Gui
                     bLessonFound = true;
 
                     user.mainGui = new LessonContinueConfirmer(plugin, user, this, lesson, "You have a lesson at this location already");
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                     //Break, let the other menu take over
                     break;
                 }
@@ -214,19 +196,17 @@ public class LocationManageMenu extends Gui
     }
 
     /**
-     * Refresh the gui.
-     * This usually involves clearing the content and recreating it.
+     * Clears items from the GUI, recreates the items and then opens the menu
      */
-    @Override
     public void refresh()
     {
         //Clears items from the gui
-        this.clearGui();
+        this.clear();
 
         //Adds the items back
         this.addItems();
 
         //Opens the gui
-        this.open(user);
+        this.open(user.player);
     }
 }

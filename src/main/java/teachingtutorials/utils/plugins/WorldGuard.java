@@ -12,10 +12,10 @@ import com.sk89q.worldguard.protection.managers.storage.StorageException;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.entity.Player;
-import teachingtutorials.TeachingTutorials;
 
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handles all WorldGuard operations
@@ -27,7 +27,7 @@ public class WorldGuard
      * @param bukkitWorld A world to set the permissions for
      * @param creator The creator who owns the location of this world
      */
-    public static void setWorldPerms(org.bukkit.World bukkitWorld, Player creator)
+    public static void setWorldPerms(org.bukkit.World bukkitWorld, Player creator, Logger logger)
     {
         //Gets the worldguard instance
         WorldGuardPlatform platform = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform();
@@ -45,7 +45,7 @@ public class WorldGuard
 
         if (protectedRegion == null)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not set worldguard perms for world - region was null");
+            logger.log(Level.SEVERE, "Could not set worldguard perms for world - region was null");
         }
         else
         {
@@ -71,7 +71,7 @@ public class WorldGuard
         }
         catch (StorageException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not set worldguard perms for world - " +
+            logger.log(Level.SEVERE, "Could not set worldguard perms for world - " +
                     "failed to save changes", e);
         }
     }
@@ -81,7 +81,7 @@ public class WorldGuard
      * @param bukkitWorld The world to add the player to
      * @param player The player to add to the world as a member
      */
-    public static void addToGlobalRegion(org.bukkit.World bukkitWorld, Player player)
+    public static void addToGlobalRegion(org.bukkit.World bukkitWorld, Player player, Logger logger)
     {
         //Gets the worldguard instance
         WorldGuardPlatform platform = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform();
@@ -95,7 +95,7 @@ public class WorldGuard
 
         if (protectedRegion == null)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not add member to world - region was null");
+            logger.log(Level.SEVERE, "Could not add member to world - region was null");
         }
         else
         {
@@ -113,7 +113,7 @@ public class WorldGuard
         }
         catch (StorageException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not set worldguard perms for world - " +
+            logger.log(Level.SEVERE, "Could not set worldguard perms for world - " +
                     "failed to save changes", e);
         }
     }
@@ -123,7 +123,7 @@ public class WorldGuard
      * @param bukkitWorld The world to add the player to
      * @param player The player to add to the world as a member
      */
-    public static void removeFromGlobalRegion(org.bukkit.World bukkitWorld, Player player)
+    public static void removeFromGlobalRegion(org.bukkit.World bukkitWorld, Player player, Logger logger)
     {
         //Gets the worldguard instance
         WorldGuardPlatform platform = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform();
@@ -137,7 +137,7 @@ public class WorldGuard
 
         if (protectedRegion == null)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not remove member from world - region was null");
+            logger.log(Level.SEVERE, "Could not remove member from world - region was null");
         }
         else
         {
@@ -155,7 +155,7 @@ public class WorldGuard
         }
         catch (StorageException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not set worldguard perms for world - " +
+            logger.log(Level.SEVERE, "Could not set worldguard perms for world - " +
                     "failed to save changes", e);
         }
     }
@@ -168,7 +168,7 @@ public class WorldGuard
      * @param minimumPoint Minimum x/z block of the region
      * @param maximumPoint Maximum x/z block of the region
      */
-    public static void createNewRegion(String szName, World world, Player player, BlockVector3 minimumPoint, BlockVector3 maximumPoint)
+    public static void createNewRegion(String szName, World world, Player player, BlockVector3 minimumPoint, BlockVector3 maximumPoint, Logger logger)
     {
         //Gets the worldguard instance
         WorldGuardPlatform platform = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform();
@@ -185,7 +185,7 @@ public class WorldGuard
 
         if (protectedRegion == null)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not add region to the world - region was null");
+            logger.log(Level.SEVERE, "Could not add region to the world - region was null");
         }
         else
         {
@@ -208,7 +208,7 @@ public class WorldGuard
         }
         catch (StorageException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Could not set worldguard perms for world - " +
+            logger.log(Level.SEVERE, "Could not set worldguard perms for world - " +
                     "failed to save changes", e);
         }
     }
@@ -219,7 +219,7 @@ public class WorldGuard
      * @param world The world which this region belongs in
      * @return Whether the region got removed or not
      */
-    public static boolean removeRegion(String szRegionName, World world)
+    public static boolean removeRegion(String szRegionName, World world, Logger logger)
     {
         //Gets the worldguard instance
         WorldGuardPlatform platform = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform();
@@ -235,24 +235,24 @@ public class WorldGuard
             regionManager.saveChanges();
             if (removedRegions.size() > 0)
             {
-                TeachingTutorials.getInstance().getLogger().log(Level.INFO, removedRegions.size()+ " regions were removed");
+                logger.log(Level.INFO, removedRegions.size()+ " regions were removed");
                 return true;
             }
             else
             {
-                TeachingTutorials.getInstance().getLogger().log(Level.INFO, "No regions were removed");
+                logger.log(Level.INFO, "No regions were removed");
                 return false;
             }
 
         }
         catch (StorageException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "WorldGuard storage error whilst removing regions: ", e);
+            logger.log(Level.SEVERE, "WorldGuard storage error whilst removing regions: ", e);
             return false;
         }
         catch (NullPointerException npe)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "WorldGuard null pointer error whilst removing regions: ", npe);
+            logger.log(Level.SEVERE, "WorldGuard null pointer error whilst removing regions: ", npe);
             return false;
         }
     }

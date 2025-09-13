@@ -16,7 +16,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialplaythrough.PlaythroughMode;
@@ -25,7 +24,6 @@ import teachingtutorials.utils.GeometricUtils;
 import teachingtutorials.guis.MainMenu;
 import teachingtutorials.listeners.Falling;
 import teachingtutorials.listeners.PlaythroughCommandListeners;
-import teachingtutorials.newlocation.elevation.ElevationManager;
 import teachingtutorials.tutorialobjects.Location;
 import teachingtutorials.tutorialobjects.Tutorial;
 import teachingtutorials.utils.Display;
@@ -247,7 +245,7 @@ public class NewLocation extends TutorialPlaythrough
         this.location = new Location(this.getTutorialID());
 
         //Adds the location to the database
-        if (location.insertNewLocation())
+        if (location.insertNewLocation(plugin.getDBConnection(), plugin.getLogger()))
             plugin.getLogger().log(Level.INFO, "Inserted location into DB with LocationID "+location.getLocationID());
         else
         {
@@ -262,11 +260,11 @@ public class NewLocation extends TutorialPlaythrough
         //Creates the new world to store this location in
         try
         {
-            if (Multiverse.createVoidWorld(szWorldName))
+            if (Multiverse.createVoidWorld(szWorldName, plugin.getLogger()))
             {
                 plugin.getLogger().log(Level.INFO, "Created new world");
                 //Sets the world perms
-                WorldGuard.setWorldPerms(Bukkit.getWorld(szWorldName), creatorOrStudent.player);
+                WorldGuard.setWorldPerms(Bukkit.getWorld(szWorldName), creatorOrStudent.player, plugin.getLogger());
                 plugin.getLogger().log(Level.INFO, "Set the world perms");
             }
             else
@@ -381,7 +379,7 @@ public class NewLocation extends TutorialPlaythrough
                 startLocationListener.deregister();
                 break;
             case creatingLocationForDB:
-                if (Location.deleteLocationByID(location.getLocationID()))
+                if (Location.deleteLocationByID(location.getLocationID(), plugin.getDBConnection(), plugin.getLogger()))
                     plugin.getLogger().log(Level.INFO, "Location with LocationID = "+location.getLocationID() +" was deleted");
                 else
                     plugin.getLogger().log(Level.WARNING, "Location with LocationID = "+location.getLocationID() +" could not be deleted");
@@ -389,13 +387,13 @@ public class NewLocation extends TutorialPlaythrough
             case creatingNewWorld:
             case generatingTerrain:
                 //Delete the location in the DB
-                if(Location.deleteLocationByID(location.getLocationID()))
+                if(Location.deleteLocationByID(location.getLocationID(), plugin.getDBConnection(), plugin.getLogger()))
                     plugin.getLogger().log(Level.INFO, "Location with LocationID = "+location.getLocationID() +" was deleted");
                 else
                     plugin.getLogger().log(Level.WARNING, "Location with LocationID = "+location.getLocationID() +" could not be deleted");
 
                 //Delete the world
-                Multiverse.deleteWorld(location.getLocationID()+"");
+                Multiverse.deleteWorld(location.getLocationID()+"", plugin.getLogger());
                 break;
             case inputtingAnswers:
                 //Performs common playthrough termination processes
@@ -403,7 +401,7 @@ public class NewLocation extends TutorialPlaythrough
                 creatorOrStudent.mainGui = new MainMenu(plugin, creatorOrStudent);
 
                 //Delete the location in the DB
-                if(Location.deleteLocationByID(location.getLocationID()))
+                if(Location.deleteLocationByID(location.getLocationID(), plugin.getDBConnection(), plugin.getLogger()))
                     plugin.getLogger().log(Level.INFO, "Location with LocationID = "+location.getLocationID() +" was deleted");
                 else
                     plugin.getLogger().log(Level.WARNING, "Location with LocationID = "+location.getLocationID() +" could not be deleted");
@@ -415,7 +413,7 @@ public class NewLocation extends TutorialPlaythrough
                 Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
                     @Override
                     public void run() {
-                        Multiverse.deleteWorld(location.getLocationID()+"");
+                        Multiverse.deleteWorld(location.getLocationID()+"", plugin.getLogger());
                     }
                 }, 2L);
                 break;

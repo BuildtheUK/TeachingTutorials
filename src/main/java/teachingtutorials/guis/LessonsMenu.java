@@ -1,6 +1,8 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialobjects.LessonObject;
@@ -32,7 +34,7 @@ public class LessonsMenu extends Gui
 
     public LessonsMenu(TeachingTutorials plugin, User user, Gui parentGui, LessonObject[] lessons)
     {
-        super(54, TutorialGUIUtils.inventoryTitle("Your Lessons"));
+        super(plugin.getTutGuiManager(), 54, TutorialGUIUtils.inventoryTitle("Your Lessons"));
         this.plugin = plugin;
         this.user = user;
         this.parentGui = parentGui;
@@ -73,15 +75,11 @@ public class LessonsMenu extends Gui
                     TutorialGUIUtils.optionTitle(lessons[i].getTutorial().getTutorialName()),
                     TutorialGUIUtils.optionLore(lessons[i].getLocation().getLocationName()));
 
-            super.setItem(i-iStart, lesson, new guiAction() {
+            super.setItem(i-iStart, lesson, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     user.mainGui = new LessonContinueConfirmer(plugin, user, LessonsMenu.this, lessons[finalI], "Do you want to restart or resume?");
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             });
         }
@@ -92,17 +90,13 @@ public class LessonsMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page back"));
-            super.setItem(45, pageBack, new guiAction() {
+            super.setItem(45, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     LessonsMenu.this.iPage--;
                     refresh();
                     user.mainGui = LessonsMenu.this;
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             });
         }
@@ -113,17 +107,13 @@ public class LessonsMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page forwards"));
-            super.setItem(53, pageBack, new guiAction() {
+            super.setItem(53, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     LessonsMenu.this.iPage++;
                     refresh();
                     user.mainGui = LessonsMenu.this;
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                 }
             });
         }
@@ -132,15 +122,11 @@ public class LessonsMenu extends Gui
         //Back button
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1,
                 TutorialGUIUtils.optionTitle("Back"));
-        super.setItem(49, back, new guiAction() {
+        super.setItem(49, back, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 user.mainGui = parentGui;
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
                 delete();
             }
         });
@@ -150,9 +136,8 @@ public class LessonsMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh() {
-        super.clearGui();
+        super.clear();
 
         this.addItems();
     }

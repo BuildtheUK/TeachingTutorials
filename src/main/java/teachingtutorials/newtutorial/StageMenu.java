@@ -3,12 +3,12 @@ package teachingtutorials.newtutorial;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
-import teachingtutorials.listeners.texteditorbooks.BookCloseAction;
-import teachingtutorials.listeners.texteditorbooks.TextEditorBookListener;
+import net.bteuk.minecraft.texteditorbooks.*;
 import teachingtutorials.tutorialobjects.Stage;
 import teachingtutorials.tutorialobjects.Step;
 import teachingtutorials.utils.Display;
@@ -47,7 +47,7 @@ public class StageMenu extends Gui
 
     public StageMenu(NewTutorialMenu tutorialMenu, User creator, Stage stage, ArrayList<Stage> stages)
     {
-        super(54, TutorialGUIUtils.inventoryTitle(stage.getName()));
+        super(tutorialMenu.getManager(), 54, TutorialGUIUtils.inventoryTitle(stage.getName()));
         this.tutorialMenu = tutorialMenu;
         this.creator = creator;
         this.stage = stage;
@@ -67,7 +67,7 @@ public class StageMenu extends Gui
 
         TutorialCreationSession tutorialCreationSession = tutorialMenu.tutorialCreationSession;
 
-        nameEditor = new TextEditorBookListener(tutorialCreationSession.plugin, creator, this, "Stage Name",
+        nameEditor = new TextEditorBookListener(tutorialCreationSession.plugin, creator.player, this, "Stage Name",
                 new BookCloseAction() {
                     @Override
                     public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
@@ -91,9 +91,14 @@ public class StageMenu extends Gui
                     }
 
                     @Override
+                    public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                        return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
+                    }
+
+                    @Override
                     public void runPostClose() {
                         //Edit the menu title with the new name and reopen
-                        StageMenu.this.editName(TutorialGUIUtils.inventoryTitle(stage.getName()), tutorialCreationSession.creator);
+                        StageMenu.this.editName(TutorialGUIUtils.inventoryTitle(stage.getName()), tutorialCreationSession.creator.player);
                     }
                 }, stage.getName());
 
@@ -106,14 +111,9 @@ public class StageMenu extends Gui
         //Delete stage
         setItem(2, Utils.createItem(Material.BARRIER, 1, TutorialGUIUtils.optionTitle("Delete Stage"),
                         TutorialGUIUtils.optionLore("Delete stage and all child objects")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Create new cancel confirmation menu
                         DeleteConfirmation deleteConfirmation = new DeleteConfirmation(StageMenu.this, () -> {
                             //Removes the stage
@@ -130,62 +130,47 @@ public class StageMenu extends Gui
 
                             //Opens the tutorial menu
                             creator.mainGui = tutorialMenu;
-                            tutorialMenu.open(creator);
+                            tutorialMenu.open(creator.player);
 
                             //Deletes this menu
                             delete();
                         }, TutorialGUIUtils.optionLore("Delete stage"), TutorialGUIUtils.optionLore("Back to stage menu"));
 
                         //Open it
-                        deleteConfirmation.open(creator);
+                        deleteConfirmation.open(creator.player);
                     }
                 });
 
 
         //Set name
         setItem(13, Utils.createItem(Material.NAME_TAG, 1, TutorialGUIUtils.optionTitle("Set Stage Name")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
-                        u.player.sendMessage(Display.aquaText("Use the name editor book to enter a new name. It must be no more than 45 characters"));
+                    public void click(InventoryClickEvent event) {
+                        creator.player.sendMessage(Display.aquaText("Use the name editor book to enter a new name. It must be no more than 45 characters"));
                         nameEditor.startEdit("Stage Name Editor");
                     }
                 });
 
         //Back to stages
         setItem(6, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Back to Stages"), TutorialGUIUtils.optionLore("Back to the list of stages")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Delete this menu and reopen the parent menu
                         delete();
                         tutorialMenu.refresh();
-                        u.mainGui = tutorialMenu;
-                        u.mainGui.open(u);
+                        creator.mainGui = tutorialMenu;
+                        creator.mainGui.open(creator.player);
                     }
                 });
 
         //Step information
         setItem(4, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, TutorialGUIUtils.optionTitle("Information"),
                         TutorialGUIUtils.optionLore("Information about steps")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         Bukkit.getScheduler().runTask(tutorialMenu.tutorialCreationSession.plugin, () -> creator.player.openBook(information));
                     }
                 });
@@ -196,17 +181,14 @@ public class StageMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page back"));
-            super.setItem(0, pageBack, new guiAction() {
+            super.setItem(0, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
+
                     StageMenu.this.iPage--;
                     refresh();
                     creator.mainGui = StageMenu.this;
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -217,17 +199,13 @@ public class StageMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page forwards"));
-            super.setItem(8, pageBack, new guiAction() {
+            super.setItem(8, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     StageMenu.this.iPage++;
                     refresh();
                     creator.mainGui = StageMenu.this;
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -251,15 +229,12 @@ public class StageMenu extends Gui
                     TutorialGUIUtils.optionTitle(stage.steps.get(i).getName()),
                     TutorialGUIUtils.optionLore(stage.steps.get(i).getStepInStage()+""));
 
-            super.setItem(i-iStart+18, step, new guiAction() {
+            super.setItem(i-iStart+18, step, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
+
                     creator.mainGui = new StepMenu(StageMenu.this, creator, stage.steps.get(finalI), stage.steps);
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -275,13 +250,9 @@ public class StageMenu extends Gui
                     Utils.createItem(Material.WRITABLE_BOOK, 1,
                             TutorialGUIUtils.optionTitle("Add Step"),
                             TutorialGUIUtils.optionLore("Click to add another step")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             //Adds a new option
                             stage.steps.add(new Step("", iOrder+1, Display.DisplayType.hologram));
                             refresh();
@@ -294,9 +265,8 @@ public class StageMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh() {
-        this.clearGui();
+        this.clear();
 
         //Recalculate number of pages required
         this.iPages = (stage.steps.size()/36)+1;
@@ -307,10 +277,5 @@ public class StageMenu extends Gui
 
         //Add the items
         this.addItems();
-    }
-
-    String getStageName()
-    {
-        return stage.getName();
     }
 }

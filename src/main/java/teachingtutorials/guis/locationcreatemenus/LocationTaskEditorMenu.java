@@ -3,12 +3,13 @@ package teachingtutorials.guis.locationcreatemenus;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.meta.BookMeta;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
-import teachingtutorials.listeners.texteditorbooks.BookCloseAction;
-import teachingtutorials.listeners.texteditorbooks.TextEditorBookListener;
+import net.bteuk.minecraft.texteditorbooks.*;
 import teachingtutorials.tutorialobjects.LocationTask;
 import teachingtutorials.tutorialplaythrough.PlaythroughTask;
 import teachingtutorials.utils.Category;
@@ -63,7 +64,7 @@ public class LocationTaskEditorMenu extends Gui
     public LocationTaskEditorMenu(TeachingTutorials plugin, User user, StepEditorMenu parentStepMenu, Component inventoryTitle, LocationTask locationTask, PlaythroughTask playthroughTask)
     {
         //Creates an empty gui
-        super(5*9, inventoryTitle);
+        super(plugin.getTutGuiManager(), 5*9, inventoryTitle);
         this.plugin = plugin;
         this.user = user;
         this.parentStepMenu = parentStepMenu;
@@ -75,7 +76,7 @@ public class LocationTaskEditorMenu extends Gui
         for (int i = 0 ; i < 5 ; i ++)
         {
             int finalI = i;
-            difficultyListeners[i] = new TextEditorBookListener(plugin, user, this, "Difficulty in " + Category.values()[i], new BookCloseAction()
+            difficultyListeners[i] = new TextEditorBookListener(plugin, user.player, this, "Difficulty in " + Category.values()[i], new BookCloseAction()
             {
                 /**
                  * Performs the action on book close. You will likely want to unregister the book close listener within this.
@@ -115,7 +116,7 @@ public class LocationTaskEditorMenu extends Gui
 
                         //Reopen the menu
                         refresh();
-                        open(user);
+                        open(user.player);
                     }
                     catch (NumberFormatException e)
                     {
@@ -125,6 +126,11 @@ public class LocationTaskEditorMenu extends Gui
                     return bVerificationPassed;
                 }
 
+                @Override
+                public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                    return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
+                }
+
                 /**
                  * Performs the actions post saving and closing
                  */
@@ -132,7 +138,7 @@ public class LocationTaskEditorMenu extends Gui
                 public void runPostClose()
                 {
                     refresh();
-                    open(user);
+                    open(user.player);
                 }
 
             }, locationTask.getDifficulty(Category.values()[i])+"");
@@ -151,15 +157,11 @@ public class LocationTaskEditorMenu extends Gui
         super.setItem((4 * 9) - 1 + 1,
                 Utils.createItem(Material.SPRUCE_DOOR, 1,
                 TutorialGUIUtils.optionTitle("To step editor menu")),
-                new guiAction() {
-            @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
-                u.mainGui = parentStepMenu;
-                u.mainGui.open(u);
+                new GuiAction() {
+                    @Override
+                    public void click(InventoryClickEvent event) {
+                        user.mainGui = parentStepMenu;
+                        user.mainGui.open(user.player);
             }
         });
 
@@ -204,13 +206,9 @@ public class LocationTaskEditorMenu extends Gui
                 super.setItem((4 * 9) - 1 + 3 + i,
                         Utils.createItem(Material.WRITABLE_BOOK, 1,
                                 TutorialGUIUtils.optionTitle("Define "+Category.values()[i] +" difficulty"), TutorialGUIUtils.optionLore(locationTask.getDifficulty(Category.values()[finalI]) +"")),
-                        new guiAction() {
+                        new GuiAction() {
                             @Override
-                            public void rightClick(User u) {
-                                leftClick(u);
-                            }
-                            @Override
-                            public void leftClick(User u) {
+                            public void click(InventoryClickEvent event) {
                                 //Gives the player the book item and registers the book close listener
                                 difficultyListeners[finalI].startEdit("Define "+Category.values()[finalI] +" difficulty");
                             }
@@ -220,15 +218,7 @@ public class LocationTaskEditorMenu extends Gui
             {
                 super.setItem((4 * 9) - 1 + 3 + i,
                         Utils.createItem(Material.BARRIER, 1,
-                                Display.colouredText("Define "+Category.values()[i] +" difficulty", NamedTextColor.GRAY)),
-                        new guiAction() {
-                            @Override
-                            public void rightClick(User u) {
-                            }
-                            @Override
-                            public void leftClick(User u) {
-                            }
-                        });
+                                Display.colouredText("Define "+Category.values()[i] +" difficulty", NamedTextColor.GRAY)));
             }
         }
 
@@ -238,13 +228,9 @@ public class LocationTaskEditorMenu extends Gui
             super.setItem((4 * 9) - 1 + 9,
                     Utils.createItem(Material.LIME_STAINED_GLASS_PANE, 1,
                             TutorialGUIUtils.optionTitle("Confirm Details"), TutorialGUIUtils.optionLore("Continue to next task")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             //Action on confirm
 
                             //Attempt to store the new data into the DB
@@ -282,15 +268,29 @@ public class LocationTaskEditorMenu extends Gui
         }
     }
 
+    protected void addAdditionalOptions() {
+    }
+
     /**
      * Clears items from the GUI, recreates the items. If you call this you will need to open the menu yourself
      * with this.open(User) after calling this and adding any additional items.
      */
-    @Override
-    public void refresh()
+    private void refresh()
     {
-        this.clearGui();
+        this.clear();
         this.addBaseOptions();
+        addAdditionalOptions();
+    }
+
+    /**
+     * Refreshes the menu and reopens it
+     * @param player The player to open the menu for
+     */
+    @Override
+    public void open(Player player)
+    {
+        refresh();
+        super.open(player);
     }
 
     /**

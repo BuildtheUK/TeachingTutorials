@@ -3,12 +3,12 @@ package teachingtutorials.newtutorial;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.meta.BookMeta;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
-import teachingtutorials.listeners.texteditorbooks.BookCloseAction;
-import teachingtutorials.listeners.texteditorbooks.TextEditorBookListener;
+import net.bteuk.minecraft.texteditorbooks.*;
 import teachingtutorials.tutorialobjects.Task;
 import teachingtutorials.tutorialobjects.CommandActionType;
 import teachingtutorials.tutorialplaythrough.FundamentalTaskType;
@@ -43,7 +43,7 @@ public class TaskMenu extends Gui
 
     public TaskMenu(GroupMenu groupMenu, Task task, ArrayList<Task> tasks)
     {
-        super(45, TutorialGUIUtils.inventoryTitle("Task Menu"));
+        super(groupMenu.getManager(), 45, TutorialGUIUtils.inventoryTitle("Task Menu"));
         this.groupMenu = groupMenu;
         this.creator = groupMenu.creator;
         this.task = task;
@@ -52,7 +52,7 @@ public class TaskMenu extends Gui
         TeachingTutorials plugin = groupMenu.stepMenu.stageMenu.tutorialMenu.tutorialCreationSession.plugin;
 
         perfectTpllAccuracy = new TextEditorBookListener(plugin,
-                creator, this, "Perfect Tpll Distance", new BookCloseAction() {
+                creator.player, this, "Perfect Tpll Distance", new BookCloseAction() {
             @Override
             public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
                 //Unregister the book
@@ -86,16 +86,21 @@ public class TaskMenu extends Gui
             }
 
             @Override
+            public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
+            }
+
+            @Override
             public void runPostClose() {
                 //Refresh the menu to update the lore of the items in the menu
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         }, task.getPerfectDistance()+"");
 
 
         acceptableTpllAccuracy = new TextEditorBookListener(plugin,
-                creator, this, "Acceptable Tpll Distance", new BookCloseAction() {
+                creator.player, this, "Acceptable Tpll Distance", new BookCloseAction() {
             @Override
             public boolean runBookClose(BookMeta oldBookMeta, BookMeta newBookMeta, TextEditorBookListener textEditorBookListener, String szNewContent) {
                 //Unregister the book
@@ -128,10 +133,15 @@ public class TaskMenu extends Gui
             }
 
             @Override
+            public boolean runBookSign(BookMeta bookMeta, BookMeta bookMeta1, TextEditorBookListener textEditorBookListener, String s) {
+                return runBookClose(bookMeta, bookMeta1, textEditorBookListener, s);
+            }
+
+            @Override
             public void runPostClose() {
                 //Refresh the menu to update the lore of the items in the menu
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         }, task.getAcceptableDistance()+"");
 
@@ -142,14 +152,9 @@ public class TaskMenu extends Gui
     {
         //Delete task
         setItem(36, Utils.createItem(Material.BARRIER, 1, TutorialGUIUtils.optionTitle("Delete Task")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Create new cancel confirmation menu
                         DeleteConfirmation deleteConfirmation = new DeleteConfirmation(TaskMenu.this, () -> {
                             //Removes the task
@@ -166,32 +171,27 @@ public class TaskMenu extends Gui
 
                             //Opens the group menu
                             creator.mainGui = groupMenu;
-                            groupMenu.open(creator);
+                            groupMenu.open(creator.player);
 
                             //Deletes this menu
                             delete();
                         }, TutorialGUIUtils.optionLore("Delete task"), TutorialGUIUtils.optionLore("Back to tasks menu"));
 
                         //Open it
-                        deleteConfirmation.open(creator);
+                        deleteConfirmation.open(creator.player);
                     }
                 });
 
         //Back to group
         setItem(44, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Back to Group"), TutorialGUIUtils.optionLore("Back to the group menu")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Delete this menu and reopen the parent menu
                         delete();
                         groupMenu.refresh();
-                        u.mainGui = groupMenu;
-                        u.mainGui.open(u);
+                        creator.mainGui = groupMenu;
+                        creator.mainGui.open(creator.player);
                     }
                 });
 
@@ -203,13 +203,10 @@ public class TaskMenu extends Gui
             if (task.getType().equals(FundamentalTaskType.tpll))
                 tpllText = tpllText.decoration(TextDecoration.BOLD, true);
 
-        setItem(2, Utils.createItem(Material.COMPASS, 1, tpllText), new guiAction() {
+        setItem(2, Utils.createItem(Material.COMPASS, 1, tpllText), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
+
                 if (task.getType() != null)
                 {
                     if (task.getType().equals(FundamentalTaskType.tpll))
@@ -221,7 +218,7 @@ public class TaskMenu extends Gui
                     task.setType(FundamentalTaskType.tpll);
 
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         });
 
@@ -231,13 +228,10 @@ public class TaskMenu extends Gui
             if (task.getType().equals(FundamentalTaskType.command))
                 commandText = commandText.decoration(TextDecoration.BOLD, true);
 
-        setItem(3, Utils.createItem(Material.COMMAND_BLOCK, 1, commandText), new guiAction() {
+        setItem(3, Utils.createItem(Material.COMMAND_BLOCK, 1, commandText), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
+
                 if (task.getType() != null)
                 {
                     if (task.getType().equals(FundamentalTaskType.command))
@@ -249,7 +243,7 @@ public class TaskMenu extends Gui
                     task.setType(FundamentalTaskType.command);
 
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         });
 
@@ -259,13 +253,10 @@ public class TaskMenu extends Gui
             if (task.getType().equals(FundamentalTaskType.place))
                 placeText = placeText.decoration(TextDecoration.BOLD, true);
 
-        setItem(4, Utils.createItem(Material.ORANGE_CONCRETE, 1, placeText), new guiAction() {
+        setItem(4, Utils.createItem(Material.ORANGE_CONCRETE, 1, placeText), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
+
                 if (task.getType() != null)
                 {
                     if (task.getType().equals(FundamentalTaskType.place))
@@ -277,7 +268,7 @@ public class TaskMenu extends Gui
                     task.setType(FundamentalTaskType.place);
 
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         });
 
@@ -287,13 +278,10 @@ public class TaskMenu extends Gui
             if (task.getType().equals(FundamentalTaskType.selection))
                 selectionText = selectionText.decoration(TextDecoration.BOLD, true);
 
-        setItem(5, Utils.createItem(Material.WOODEN_AXE, 1, selectionText), new guiAction() {
+        setItem(5, Utils.createItem(Material.WOODEN_AXE, 1, selectionText), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
+
                 if (task.getType() != null)
                 {
                     if (task.getType().equals(FundamentalTaskType.selection))
@@ -305,7 +293,7 @@ public class TaskMenu extends Gui
                     task.setType(FundamentalTaskType.selection);
 
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         });
 
@@ -315,13 +303,10 @@ public class TaskMenu extends Gui
             if (task.getType().equals(FundamentalTaskType.chat))
                 chatText = chatText.decoration(TextDecoration.BOLD, true);
 
-        setItem(6, Utils.createItem(Material.OAK_SIGN, 1, chatText), new guiAction() {
+        setItem(6, Utils.createItem(Material.OAK_SIGN, 1, chatText), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
+
                 if (task.getType() != null)
                 {
                     if (task.getType().equals(FundamentalTaskType.chat))
@@ -333,7 +318,7 @@ public class TaskMenu extends Gui
                     task.setType(FundamentalTaskType.chat);
 
                 refresh();
-                open(creator);
+                open(creator.player);
             }
         });
 
@@ -345,15 +330,10 @@ public class TaskMenu extends Gui
             {
                 //Acceptable distance
                 setItem(21, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, TutorialGUIUtils.optionTitle("Acceptable Distance"), TutorialGUIUtils.optionLore("The maximum acceptable distance")),
-                        new guiAction() {
+                        new GuiAction() {
                             @Override
-                            public void rightClick(User u) {
-                                leftClick(u);
-                            }
-
-                            @Override
-                            public void leftClick(User u) {
-                                u.player.sendMessage(Display.aquaText("Use the book to set the acceptable distance."));
+                            public void click(InventoryClickEvent event) {
+                                creator.player.sendMessage(Display.aquaText("Use the book to set the acceptable distance."));
                                 acceptableTpllAccuracy.startEdit("Acceptable Distance Editor");
                             }
                         });
@@ -361,15 +341,10 @@ public class TaskMenu extends Gui
                 //Perfect distance
                 setItem(23, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, TutorialGUIUtils.optionTitle("Perfect Distance"),
                                 TutorialGUIUtils.optionLore("The maximum distance"), TutorialGUIUtils.optionLore("for a perfect score & message")),
-                        new guiAction() {
+                        new GuiAction() {
                             @Override
-                            public void rightClick(User u) {
-                                leftClick(u);
-                            }
-
-                            @Override
-                            public void leftClick(User u) {
-                                u.player.sendMessage(Display.aquaText("Use the book to set the perfect distance."));
+                            public void click(InventoryClickEvent event) {
+                                creator.player.sendMessage(Display.aquaText("Use the book to set the perfect distance."));
                                 perfectTpllAccuracy.startEdit("Perfect Distance Editor");
                             }
                         });
@@ -385,13 +360,9 @@ public class TaskMenu extends Gui
                     if (task.getCommandActionType().equals(CommandActionType.none))
                         noneText = noneText.decoration(TextDecoration.BOLD, true);
 
-                setItem(20, Utils.createItem(Material.BARRIER, 1, noneText, TutorialGUIUtils.optionLore("Command will do nothing")), new guiAction() {
+                setItem(20, Utils.createItem(Material.BARRIER, 1, noneText, TutorialGUIUtils.optionLore("Command will do nothing")), new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         if (task.getCommandActionType() != null)
                         {
                             if (task.getCommandActionType().equals(CommandActionType.none))
@@ -403,7 +374,7 @@ public class TaskMenu extends Gui
                             task.setCommandActionType(CommandActionType.none);
 
                         refresh();
-                        open(creator);
+                        open(creator.player);
                     }
                 });
 
@@ -414,13 +385,9 @@ public class TaskMenu extends Gui
                     if (task.getCommandActionType().equals(CommandActionType.virtualBlocks))
                         virtualBlocksText = virtualBlocksText.decoration(TextDecoration.BOLD, true);
 
-                setItem(22, Utils.createItem(Material.ORANGE_CONCRETE, 1, virtualBlocksText, TutorialGUIUtils.optionLore("Command is a WorldEdit world change command")), new guiAction() {
+                setItem(22, Utils.createItem(Material.ORANGE_CONCRETE, 1, virtualBlocksText, TutorialGUIUtils.optionLore("Command is a WorldEdit world change command")),                 new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         if (task.getCommandActionType() != null)
                         {
                             if (task.getCommandActionType().equals(CommandActionType.virtualBlocks))
@@ -432,7 +399,7 @@ public class TaskMenu extends Gui
                             task.setCommandActionType(CommandActionType.virtualBlocks);
 
                         refresh();
-                        open(creator);
+                        open(creator.player);
                     }
                 });
 
@@ -443,13 +410,10 @@ public class TaskMenu extends Gui
                     if (task.getCommandActionType().equals(CommandActionType.full))
                         fullText = fullText.decoration(TextDecoration.BOLD, true);
 
-                setItem(24, Utils.createItem(Material.COMMAND_BLOCK, 1, fullText, TutorialGUIUtils.optionLore("Command will actually be performed")), new guiAction() {
+                setItem(24, Utils.createItem(Material.COMMAND_BLOCK, 1, fullText, TutorialGUIUtils.optionLore("Command will actually be performed")), new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
+
                         if (task.getCommandActionType() != null)
                         {
                             if (task.getCommandActionType().equals(CommandActionType.full))
@@ -461,7 +425,7 @@ public class TaskMenu extends Gui
                             task.setCommandActionType(CommandActionType.full);
 
                         refresh();
-                        open(creator);
+                        open(creator.player);
                     }
                 });
             }
@@ -472,9 +436,8 @@ public class TaskMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh() {
-        super.clearGui();
+        super.clear();
 
         this.addItems();
     }

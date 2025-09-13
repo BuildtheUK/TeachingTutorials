@@ -273,7 +273,7 @@ public class GroupPlaythrough
         {
             //Compiles the command to fetch groups
             sql = "Select * FROM `Groups` WHERE `StepID` = "+ stepPlaythrough.getStep().getStepID();
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             //Executes the query
             resultSet = SQL.executeQuery(sql);

@@ -4,10 +4,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
 import teachingtutorials.tutorialobjects.Tutorial;
 import teachingtutorials.utils.User;
@@ -40,7 +41,7 @@ public class CompulsoryTutorialMenu extends Gui
     public CompulsoryTutorialMenu(TeachingTutorials plugin, User user, Tutorial[] tutorials)
     {
         //Sets up the menu with the icons already in place
-        super(getGUI(tutorials));
+        super(plugin.getTutGuiManager(), getGUI(tutorials));
         this.plugin = plugin;
         this.user = user;
         this.tutorials = tutorials;
@@ -106,13 +107,13 @@ public class CompulsoryTutorialMenu extends Gui
             {
                 tutorial = Utils.createItem(compulsoryBlock, 1,
                         TutorialGUIUtils.optionTitle(tutorials[i].getTutorialName()).decoration(TextDecoration.BOLD, true),
-                        TutorialGUIUtils.optionLore(Bukkit.getPlayer(tutorials[i].getUUIDOfAuthor()).getName()));
+                        TutorialGUIUtils.optionLore(Bukkit.getOfflinePlayer(tutorials[i].getUUIDOfAuthor()).getName()));
             }
             else
             {
                 tutorial = Utils.createItem(nonCompulsoryBlock, 1,
                         TutorialGUIUtils.optionTitle(tutorials[i].getTutorialName()),
-                        TutorialGUIUtils.optionLore(Bukkit.getPlayer(tutorials[i].getUUIDOfAuthor()).getName()));
+                        TutorialGUIUtils.optionLore(Bukkit.getOfflinePlayer(tutorials[i].getUUIDOfAuthor()).getName()));
             }
             inventory.setItem(i, tutorial);
         }
@@ -149,17 +150,12 @@ public class CompulsoryTutorialMenu extends Gui
         iRows = iDiv+2;
 
         //Adds back button
-        setAction((iRows * 9) - 1, new guiAction() {
+        setAction((iRows * 9) - 1, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent inventoryClickEvent) {
                 delete();
-                u.mainGui = new CreatorMenu(plugin, user);
-                u.mainGui.open(u);
+                user.mainGui = new CreatorMenu(plugin, user);
+                user.mainGui.open(user.player);
             }
         });
 
@@ -168,17 +164,15 @@ public class CompulsoryTutorialMenu extends Gui
         for (i = 0 ; i < tutorials.length ; i++)
         {
             int iSlot = i;
-            setAction(iSlot, new guiAction() {
+            setAction(iSlot, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-
-                @Override
-                public void leftClick(User u)
+                public void click(InventoryClickEvent inventoryClickEvent)
                 {
                     //Toggles whether the tutorial is compulsory
                     tutorials[iSlot].toggleCompulsory(plugin);
+
+                    //Refresh tutorial data
+                    tutorials = Tutorial.fetchAll(true, false, null, plugin.getDBConnection(), plugin.getLogger());
 
                     //Refreshes the display
                     refresh();
@@ -188,20 +182,19 @@ public class CompulsoryTutorialMenu extends Gui
     }
 
     /**
-     * Clears items from the GUI, re-adds the items and then opens the menu
+     * Clears items from the GUI, re-adds the items, then reopens the menu
      */
-    @Override
     public void refresh() {
         //Clears the gui
-        this.clearGui();
+        super.clear();
 
         //Sets the icons
-        this.getInventory().setContents(getGUI(tutorials).getContents());
+        super.setItemsFromInventory(getGUI(tutorials));
 
         //Sets the actions
         this.setActions();
 
-        //Opens the gui
-        this.open(user);
+        //Open the menu
+        this.open(user.player);
     }
 }

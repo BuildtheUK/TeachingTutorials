@@ -141,7 +141,7 @@ public class Event
                         if (previousEvent.timestamp.before(event.timestamp))
                         {
                             //If the old one was added after, delete the old one from the DB
-                            previousEvent.remove();
+                            previousEvent.remove(dbConnection, logger);
 
                             //Delete the old one from the list to return
                             events.remove(i);
@@ -152,7 +152,7 @@ public class Event
                             bDoNotAdd = true;
 
                             //Delete the new one from the DB
-                            event.remove();
+                            event.remove(dbConnection, logger);
 
                             //We do not want to break the loop here because we want to sanitise the whole list
                         }
@@ -177,8 +177,10 @@ public class Event
 
     /**
      * Removes this event from the database
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      */
-    public void remove()
+    public void remove(DBConnection dbConnection, Logger logger)
     {
         String sql;
         Statement SQL = null;
@@ -187,7 +189,7 @@ public class Event
 
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
 
             //Removes the answers
             sql = "Delete FROM Events WHERE UUID = '" +this.player.getUniqueId() +"' AND Timestamp = '"+this.timestamp+"'";
@@ -195,11 +197,11 @@ public class Event
         }
         catch (SQLException se)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - SQL Error deleting event", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error deleting event", se);
         }
         catch (Exception e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - Non-SQL Error deleting event", e);
+            logger.log(Level.SEVERE, "SQL - Non-SQL Error deleting event", e);
         }
     }
 

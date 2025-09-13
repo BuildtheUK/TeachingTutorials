@@ -19,6 +19,14 @@ import teachingtutorials.utils.User;
  */
 public class Blockspy implements CommandExecutor
 {
+    /** A reference to the TeachingTutorials plugin */
+    private final TeachingTutorials plugin;
+
+    public Blockspy(TeachingTutorials plugin)
+    {
+        this.plugin = plugin;
+    }
+
     /**
      * @param commandSender
      * @param command
@@ -38,12 +46,12 @@ public class Blockspy implements CommandExecutor
         //Ensure the player has permissions to spy
         if (!player.hasPermission("teachingtutorials.canspy"))
         {
-            player.sendMessage(Display.errorText(TeachingTutorials.getInstance().getConfig().getString("SpyPermissionsErrorMessage")));
+            player.sendMessage(Display.errorText(plugin.getConfig().getString("SpyPermissionsErrorMessage")));
         }
         else
         {
             //Deal with if the prospective spy isn't idle themself
-            User spyUser = User.identifyUser(TeachingTutorials.getInstance(), player);
+            User spyUser = User.identifyUser(plugin, player);
             if (spyUser == null)
                 return true;
             if (!spyUser.getCurrentMode().equals(Mode.Idle))
@@ -78,7 +86,7 @@ public class Blockspy implements CommandExecutor
             }
 
             //Gets the User for the target player
-            User targetUser = User.identifyUser(TeachingTutorials.getInstance(), targetPlayer);
+            User targetUser = User.identifyUser(plugin, targetPlayer);
             if (targetUser == null)
             {
                 player.sendMessage(Display.errorText("Such player is not on the tutorials server"));

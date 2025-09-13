@@ -9,7 +9,7 @@ import teachingtutorials.TeachingTutorials;
 import teachingtutorials.newlocation.NewLocation;
 import teachingtutorials.tutorialobjects.LessonObject;
 import teachingtutorials.tutorialplaythrough.TutorialPlaythrough;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.tutorialplaythrough.Lesson;
 
 import java.sql.ResultSet;
@@ -418,8 +418,10 @@ public class User
     //---------------------------------------------------
     /**
      * Records in the database that this user has completed the compulsory tutorial
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger
      */
-    public void triggerCompulsory()
+    public void triggerCompulsory(DBConnection dbConnection, Logger logger)
     {
         //Declare variables
         String szSql;
@@ -431,13 +433,13 @@ public class User
         //Updates the database
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
             szSql = "UPDATE `Players` SET `CompletedCompulsory` = 1 WHERE `UUID` = '"+ this.player.getUniqueId()+"'";
             SQL.executeUpdate(szSql);
         }
         catch (SQLException e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - SQL Error setting user " +player.getName() +" as having completed the compulsory tutorial", e);
+            logger.log(Level.SEVERE, "SQL - SQL Error setting user " +player.getName() +" as having completed the compulsory tutorial", e);
         }
     }
 }
