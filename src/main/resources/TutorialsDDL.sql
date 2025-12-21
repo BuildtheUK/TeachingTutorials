@@ -146,6 +146,8 @@ CREATE TABLE IF NOT EXISTS `TeachingTutorials`.`Lessons` (
   `LocationID` INT NOT NULL,
   `HighestStepCompleted` INT DEFAULT 0,
   `HighestStageCompleted` INT DEFAULT 0,
+  `StartedAt` TIMESTAMP NULL,
+  `CompletedAt` TIMESTAMP NULL,
   PRIMARY KEY (`LessonID`),
   INDEX `User` (`UUID` ASC) VISIBLE,
   INDEX `Tutorial1` (`TutorialID` ASC) VISIBLE,
