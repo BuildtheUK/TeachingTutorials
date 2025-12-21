@@ -368,7 +368,7 @@ public class Lesson extends TutorialPlaythrough
 
         //Get a list of all Locations of in use Locations for the tutorial of this Lesson
         Location[] locations;
-        locations = Location.getAllInUseLocationsForTutorial(this.tutorial.getTutorialID(), TeachingTutorials.getInstance().getDBConnection(), TeachingTutorials.getInstance().getLogger());
+        locations = Location.getAllInUseLocationsForTutorial(this.tutorial.getTutorialID(), plugin.getDBConnection(), plugin.getLogger());
 
         //Checks to see if any locations were found
         if (locations.length == 0)
@@ -443,13 +443,13 @@ public class Lesson extends TutorialPlaythrough
         */
 
         //Recalculate the ratings
-        creatorOrStudent.calculateRatings(TeachingTutorials.getInstance().getDBConnection());
+        creatorOrStudent.calculateRatings(plugin.getDBConnection());
 
         //Updates the DB and user's boolean variable, sends player a completion message
         if (tutorial.isCompulsory())
         {
             //Updates the User information within the plugin and the database
-            creatorOrStudent.triggerCompulsory();
+            creatorOrStudent.triggerCompulsory(plugin.getDBConnection(), plugin.getLogger());
 
             //Displays a message in chat
 
@@ -579,7 +579,7 @@ public class Lesson extends TutorialPlaythrough
         try
         {
             //Sets up the statement
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             //At this point StageIndex actually refers to what stage they are on and is 1 indexed
             szSql = "UPDATE `Lessons` SET `StageAt` = " +iStageIndex +" WHERE `LessonID` = "+ this.iLessonID;
@@ -619,7 +619,7 @@ public class Lesson extends TutorialPlaythrough
         //Updates the database
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
             szSql = "UPDATE `Lessons` SET `Finished` = 1 WHERE `LessonID` = "+ this.iLessonID;
             SQL.executeUpdate(szSql);
         }

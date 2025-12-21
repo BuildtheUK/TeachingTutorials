@@ -1,9 +1,10 @@
 package teachingtutorials.guis.adminscreators;
 
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
 import teachingtutorials.tutorialobjects.Location;
 import teachingtutorials.tutorialobjects.Tutorial;
@@ -35,7 +36,7 @@ public class TutorialLocationsMenu extends Gui
 
     public TutorialLocationsMenu(TeachingTutorials plugin, User user, Tutorial tutorial, TutorialManageMenu parentTutorialManageMenu, Location[] locations)
     {
-        super(CreatorTutorialsMenu.calculateNumRows(locations.length)*9, TutorialGUIUtils.inventoryTitle("Locations for Tutorial"));
+        super(plugin.getTutGuiManager(), CreatorTutorialsMenu.calculateNumRows(locations.length)*9, TutorialGUIUtils.inventoryTitle("Locations for Tutorial"));
 
         this.plugin = plugin;
         this.user = user;
@@ -74,33 +75,23 @@ public class TutorialLocationsMenu extends Gui
             setItem(i, Utils.createItem(Material.FILLED_MAP, 1,
                             TutorialGUIUtils.optionTitle(locationsOfTutorial[i].getLocationName()),
                             TutorialGUIUtils.optionLore("Click to manage location")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-
-                        @Override
-                        public void leftClick(User u) {
-                            u.mainGui = new LocationManageMenu(plugin, u, TutorialLocationsMenu.this, locationsOfTutorial[finalI]);
-                            u.mainGui.open(u);
+                        public void click(InventoryClickEvent event) {
+                            user.mainGui = new LocationManageMenu(plugin, user, TutorialLocationsMenu.this, locationsOfTutorial[finalI]);
+                            user.mainGui.open(user.player);
                         }
                     });
         }
 
         //Adds back button
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.backButton("Back to tutorial menu"));
-        setItem((CreatorTutorialsMenu.calculateNumRows(locationsOfTutorial.length) * 9) - 1, back, new guiAction() {
+        setItem((CreatorTutorialsMenu.calculateNumRows(locationsOfTutorial.length) * 9) - 1, back, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 delete();
-                u.mainGui = parentTutorialManageMenu;
-                u.mainGui.open(u);
+                user.mainGui = parentTutorialManageMenu;
+                user.mainGui.open(user.player);
             }
         });
     }
@@ -121,15 +112,4 @@ public class TutorialLocationsMenu extends Gui
                     TutorialGUIUtils.optionLore("Click to manage location")));
         }
     }
-
-    /**
-     * Refresh the gui.
-     * This usually involves clearing the content and recreating it.
-     */
-    @Override
-    public void refresh()
-    {
-        //There is no refresh for this gui. If it needs to be refreshed then we need to create a new one entirely.
-    }
-
 }

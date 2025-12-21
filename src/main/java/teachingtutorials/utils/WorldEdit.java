@@ -11,6 +11,7 @@ import teachingtutorials.tutorialplaythrough.TutorialPlaythrough;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Manages WorldEdit calculations within the Tutorials system
@@ -47,19 +48,19 @@ public class WorldEdit
     /**
      * Sets that there is currently a calculation in progress
      */
-    public static void setCalculationInProgress()
+    public static void setCalculationInProgress(Logger logger)
     {
         bCurrentCalculationOngoing.set(true);
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.RED +"The calculations queue has been blocked - calculation in progress");
+        logger.log(Level.INFO, ChatColor.RED +"The calculations queue has been blocked - calculation in progress");
     }
 
     /**
      * Sets that there is no longer a calculation in progress
      */
-    public static void setCalculationFinished()
+    public static void setCalculationFinished(Logger logger)
     {
         bCurrentCalculationOngoing.set(false);
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.GREEN +"The calculations queue has been unblocked!");
+        logger.log(Level.INFO, ChatColor.GREEN +"The calculations queue has been unblocked!");
     }
 
     /**
@@ -73,19 +74,19 @@ public class WorldEdit
     /**
      * Sets that there are currently virtual blocks on the real world
      */
-    public static void setVirtualBlocksOnRealWorld()
+    public static void setVirtualBlocksOnRealWorld(Logger logger)
     {
         bVirtualBlocksOnRealWorld.set(true);
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.GREEN +"Virtual blocks been marked as no longer on the world");
+        logger.log(Level.INFO, ChatColor.GREEN +"Virtual blocks been marked as no longer on the world");
     }
 
     /**
      * Sets that there are no longer virtual blocks on the real world
      */
-    public static void setVirtualBlocksOffRealWorld()
+    public static void setVirtualBlocksOffRealWorld(Logger logger)
     {
         bVirtualBlocksOnRealWorld.set(false);
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, ChatColor.GREEN +"Virtual blocks been marked as on the world");
+        logger.log(Level.INFO, ChatColor.GREEN +"Virtual blocks been marked as on the world");
     }
 
     /**
@@ -99,7 +100,7 @@ public class WorldEdit
      * @param szCommandArgs The command args (the reset of the command)
      * @param tutorialPlaythrough The tutorial playthrough which this task belongs to
      */
-    public static void BlocksCalculator(int iTaskID, final VirtualBlockGroup<Location, BlockData> virtualBlocks, RegionSelector correctSelectionRegion, String szCommandLabel, String[] szCommandArgs, TutorialPlaythrough tutorialPlaythrough)
+    public static void BlocksCalculator(TeachingTutorials plugin, int iTaskID, final VirtualBlockGroup<Location, BlockData> virtualBlocks, RegionSelector correctSelectionRegion, String szCommandLabel, String[] szCommandArgs, TutorialPlaythrough tutorialPlaythrough)
     {
         //1. Modifies the command
         //This code is taken from WorldEdit - See https://enginehub.org/
@@ -116,12 +117,12 @@ public class WorldEdit
         String szWorldEditCommand = Joiner.on(" ").appendTo(sb, szCommandArgs).toString();
 
         //The command is now fully formatted correctly
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Upcoming command being run via the console: "+szWorldEditCommand);
+        plugin.getLogger().log(Level.INFO, "Upcoming command being run via the console: "+szWorldEditCommand);
 
         //Create a new calculation manager for this calculation and add to the list
-        WorldEditCalculation newCalculation = new WorldEditCalculation(szWorldEditCommand, correctSelectionRegion, tutorialPlaythrough, iTaskID, virtualBlocks);
+        WorldEditCalculation newCalculation = new WorldEditCalculation(plugin, szWorldEditCommand, correctSelectionRegion, tutorialPlaythrough, iTaskID, virtualBlocks);
         WorldEdit.pendingCalculations.add(newCalculation);
 
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, "This calculation has been added to the queue: "+szWorldEditCommand);
+        plugin.getLogger().log(Level.INFO, "This calculation has been added to the queue: "+szWorldEditCommand);
     }
 }

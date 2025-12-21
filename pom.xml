@@ -6,7 +6,7 @@
 
     <groupId>me.bteuk</groupId>
     <artifactId>TeachingTutorials</artifactId>
-    <version>1.13</version>
+    <version>1.14.0</version>
     <packaging>jar</packaging>
 
     <name>TeachingTutorials</name>
@@ -178,6 +178,11 @@
             <version>970d3dc3f7</version>
         </dependency>
         <dependency>
+            <groupId>com.github.BTEUK</groupId>
+            <artifactId>BTEUKLib</artifactId>
+            <version>a26512cb12</version>
+        </dependency>
+        <dependency>
             <groupId>com.onarandombox.multiversecore</groupId>
             <artifactId>multiverse-core</artifactId>
             <version>4.3.14</version>
@@ -226,6 +231,12 @@
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
             <version>7.0.13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

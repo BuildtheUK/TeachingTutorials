@@ -3,9 +3,10 @@ package teachingtutorials.newtutorial;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import teachingtutorials.guis.Gui;
+import net.bteuk.minecraft.gui.*;
 import teachingtutorials.guis.TutorialGUIUtils;
 import teachingtutorials.tutorialobjects.Group;
 import teachingtutorials.tutorialobjects.Task;
@@ -42,7 +43,7 @@ public class GroupMenu extends Gui
 
     public GroupMenu(StepMenu stepMenu, User creator, Group group, ArrayList<Group> groups)
     {
-        super(54, TutorialGUIUtils.inventoryTitle("Group Menu"));
+        super(stepMenu.getManager(), 54, TutorialGUIUtils.inventoryTitle("Group Menu"));
         this.stepMenu = stepMenu;
         this.creator = creator;
         this.group = group;
@@ -69,14 +70,9 @@ public class GroupMenu extends Gui
         //Delete group
         setItem(2, Utils.createItem(Material.BARRIER, 1, TutorialGUIUtils.optionTitle("Delete Group"),
                         TutorialGUIUtils.optionLore("Delete group and all child tasks")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Create new cancel confirmation menu
                         DeleteConfirmation deleteConfirmation = new DeleteConfirmation(GroupMenu.this, () -> {
                             //Removes the group
@@ -87,44 +83,34 @@ public class GroupMenu extends Gui
 
                             //Opens the step menu
                             creator.mainGui = stepMenu;
-                            stepMenu.open(creator);
+                            stepMenu.open(creator.player);
 
                         }, TutorialGUIUtils.optionLore("Delete group"), TutorialGUIUtils.optionLore("Back to group menu"));
 
                         //Open it
-                        deleteConfirmation.open(creator);
+                        deleteConfirmation.open(creator.player);
                     }
                 });
 
         //Back to step
         setItem(6, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Back to Groups"), TutorialGUIUtils.optionLore("Back to the list of groups")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         //Delete this menu and reopen the parent menu
                         delete();
                         stepMenu.refresh();
-                        u.mainGui = stepMenu;
-                        u.mainGui.open(u);
+                        creator.mainGui = stepMenu;
+                        creator.mainGui.open(creator.player);
                     }
                 });
 
         //Task information
         setItem(4, Utils.createItem(Material.KNOWLEDGE_BOOK, 1, TutorialGUIUtils.optionTitle("Information"),
                         TutorialGUIUtils.optionLore("Information about tasks")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         Bukkit.getScheduler().runTask(stepMenu.stageMenu.tutorialMenu.tutorialCreationSession.plugin, () -> creator.player.openBook(information));
                     }
                 });
@@ -136,17 +122,13 @@ public class GroupMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page back"));
-            super.setItem(0, pageBack, new guiAction() {
+            super.setItem(0, pageBack,  new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     GroupMenu.this.iPage--;
                     refresh();
                     creator.mainGui = GroupMenu.this;
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -157,17 +139,13 @@ public class GroupMenu extends Gui
             ItemStack pageBack = Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44",
                     Material.ACACIA_BOAT, 1,
                     TutorialGUIUtils.optionTitle("Page forwards"));
-            super.setItem(8, pageBack, new guiAction() {
+            super.setItem(8, pageBack, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     GroupMenu.this.iPage++;
                     refresh();
                     creator.mainGui = GroupMenu.this;
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -206,15 +184,12 @@ public class GroupMenu extends Gui
                         TutorialGUIUtils.optionTitle("Task"));
             }
 
-            super.setItem(i-iStart+18, taskIcon, new guiAction() {
+            super.setItem(i-iStart+18, taskIcon, new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
+
                     creator.mainGui = new TaskMenu(GroupMenu.this, group.tasks.get(finalI), group.tasks);
-                    creator.mainGui.open(creator);
+                    creator.mainGui.open(creator.player);
                 }
             });
         }
@@ -230,13 +205,9 @@ public class GroupMenu extends Gui
                     Utils.createItem(Material.WRITABLE_BOOK, 1,
                             TutorialGUIUtils.optionTitle("Add Task"),
                             TutorialGUIUtils.optionLore("Click to add another task")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             //Adds a new task
                             group.tasks.add(new Task(iOrder+1));
                             refresh();
@@ -249,9 +220,8 @@ public class GroupMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh() {
-        super.clearGui();
+        super.clear();
 
         //Recalculate number of pages required
         this.iPages = (group.tasks.size()/36)+1;

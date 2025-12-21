@@ -436,7 +436,7 @@ public class Tutorial
         //Attempts to update the database
         try
         {
-            SQL = plugin.getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
             if (this.bCompulsory)
                 szSql = "UPDATE `Tutorials` SET `Compulsory` = 0 WHERE `TutorialID` = "+ this.iTutorialID;
             else
@@ -470,7 +470,7 @@ public class Tutorial
 
         try
         {
-            SQL = plugin.getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
             szSql = "UPDATE `Tutorials` SET `Compulsory` = 0";
             SQL.executeUpdate(szSql);
         }
@@ -497,7 +497,7 @@ public class Tutorial
         try
         {
             //Updates the database
-            SQL = plugin.getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
             if (this.bInUse)
             {
                 szSql = "UPDATE `Tutorials` SET `InUse` = 0 WHERE `TutorialID` = "+ this.iTutorialID;

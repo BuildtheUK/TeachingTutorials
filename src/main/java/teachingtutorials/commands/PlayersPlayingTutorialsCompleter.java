@@ -17,6 +17,14 @@ import java.util.List;
  */
 public class PlayersPlayingTutorialsCompleter implements TabCompleter
 {
+    /** A reference to the TeachingTutorials plugin */
+    private final TeachingTutorials plugin;
+
+    public PlayersPlayingTutorialsCompleter(TeachingTutorials plugin)
+    {
+        this.plugin = plugin;
+    }
+
     /**
      * @param commandSender
      * @param command
@@ -31,7 +39,7 @@ public class PlayersPlayingTutorialsCompleter implements TabCompleter
         List<String> activePlayers = new ArrayList<>();
 
         //Gets the list of online users
-        ArrayList<User> onlineUsers = TeachingTutorials.getInstance().players;
+        ArrayList<User> onlineUsers = plugin.players;
         User user;
         int iNumUsers = onlineUsers.size();
 

@@ -1,6 +1,8 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import org.bukkit.Material;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialobjects.LessonObject;
@@ -34,7 +36,7 @@ public class LessonContinueConfirmer extends Gui
      */
     public LessonContinueConfirmer(TeachingTutorials plugin, User user, Gui parentGui, LessonObject lessonToContinue, String szMessage)
     {
-        super(27, TutorialGUIUtils.inventoryTitle("Resume or continue lesson?"));
+        super(plugin.getTutGuiManager(), 27, TutorialGUIUtils.inventoryTitle("Resume or continue lesson?"));
         this.plugin = plugin;
         this.parentGui = parentGui;
         this.user = user;
@@ -51,26 +53,12 @@ public class LessonContinueConfirmer extends Gui
     {
         //Info
         super.setItem(4, Utils.createItem(Material.KNOWLEDGE_BOOK, 1,
-                TutorialGUIUtils.optionLore(szMessage)), new guiAction() {
-            @Override
-            public void rightClick(User u) {
-            }
-            @Override
-            public void leftClick(User u)
-            {
-            }
-        });
+                TutorialGUIUtils.optionLore(szMessage)));
 
         //Restart lesson
-        super.setItem(12 - 1, Utils.createItem(Material.BOOK, 1,
-                TutorialGUIUtils.optionTitle("Restart the lesson")), new guiAction() {
+        super.setItem(12 - 1, Utils.createItem(Material.BOOK, 1, TutorialGUIUtils.optionTitle("Restart the lesson")), new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u)
-            {
+            public void click(InventoryClickEvent event) {
                 Lesson lessonPlaythrough = new Lesson(user, plugin, lessonToContinue);
                 lessonPlaythrough.startLesson(true);
             }
@@ -80,13 +68,9 @@ public class LessonContinueConfirmer extends Gui
         ItemStack resumeCompulsory = Utils.createItem(Material.WRITABLE_BOOK, 1,
                 TutorialGUIUtils.optionTitle("Resume the lesson"));
 
-        super.setItem(16 - 1, resumeCompulsory, new guiAction() {
+        super.setItem(16 - 1, resumeCompulsory, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 Lesson lessonPlaythrough = new Lesson(user, plugin, lessonToContinue);
                 lessonPlaythrough.startLesson(false);
             }
@@ -95,27 +79,13 @@ public class LessonContinueConfirmer extends Gui
         //Back button
         ItemStack back = Utils.createItem(Material.SPRUCE_DOOR, 1,
                 TutorialGUIUtils.optionTitle("Back"));
-        super.setItem(26, back, new guiAction() {
+        super.setItem(26, back, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 user.mainGui = parentGui;
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
                 delete();
             }
         });
-    }
-
-    /**
-     * Refresh the gui.
-     * This usually involves clearing the content and recreating it.
-     */
-    @Override
-    public void refresh()
-    {
-
     }
 }

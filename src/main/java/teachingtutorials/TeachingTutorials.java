@@ -1,5 +1,8 @@
 package teachingtutorials;
 
+import lombok.Getter;
+import net.bteuk.minecraft.gui.*;
+import net.bteuk.minecraft.misc.PlayerUtils;
 import net.bteuk.teachingtutorials.services.PromotionService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -16,11 +19,11 @@ import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import teachingtutorials.commands.Blockspy;
 import teachingtutorials.commands.PlayersPlayingTutorialsCompleter;
+import teachingtutorials.guis.Event;
+import teachingtutorials.guis.MainMenu;
 import teachingtutorials.services.TutorialsPromotionService;
 import teachingtutorials.tutorialobjects.*;
 import teachingtutorials.tutorialplaythrough.FundamentalTaskType;
-import teachingtutorials.guis.*;
-import teachingtutorials.listeners.InventoryClickedOrClosed;
 import teachingtutorials.listeners.PlayerInteract;
 import teachingtutorials.listeners.JoinLeaveEvent;
 import teachingtutorials.listeners.GlobalPlayerCommandProcess;
@@ -41,9 +44,6 @@ import java.util.logging.Level;
  */
 public class TeachingTutorials extends JavaPlugin
 {
-    /** A reference to the main instance of the plugin */
-    private static TeachingTutorials instance;
-
     /** A reference to the config of the main instance plugin */
     private static FileConfiguration config;
 
@@ -52,6 +52,10 @@ public class TeachingTutorials extends JavaPlugin
 
     /** An item stack for the menu opener icon */
     public static ItemStack menu;
+
+    /** The gui manager */
+    @Getter
+    private GuiManager tutGuiManager;
 
     /** The slot in which the menu opener icon should appear */
     private int iLearningMenuSlot;
@@ -129,9 +133,6 @@ public class TeachingTutorials extends JavaPlugin
             return;
         }
 
-        //Set the static instance of the plugin to this
-        TeachingTutorials.instance = this;
-
         //Set the static instance of the config to the config of this instance
         TeachingTutorials.config = this.getConfig();
         saveDefaultConfig();
@@ -208,6 +209,8 @@ public class TeachingTutorials extends JavaPlugin
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Learning Menu");
         menu.setItemMeta(meta);
 
+        PlayerUtils.protectedItems.add(menu);
+
         //Initiates the slot index where the menu should be placed
         iLearningMenuSlot = config.getInt("Learning_Menu_Slot");
 
@@ -232,7 +235,7 @@ public class TeachingTutorials extends JavaPlugin
                     else if (!currentItemInSlot.equals(menu))
                     {
                         //Attempts to move the current item to a free slot if there is one available
-                        int iEmptySlot = Utils.getEmptyHotbarSlot(p);
+                        int iEmptySlot = PlayerUtils.getAvailableHotbarSlot(p);
                         if (iEmptySlot != -1)
                             p.getInventory().setItem(iEmptySlot, currentItemInSlot);
 
@@ -243,11 +246,16 @@ public class TeachingTutorials extends JavaPlugin
         }, 0L, config.getLong("Menu_Icon_Refresh_Period"));
 
 
+        //-----------------------------------------------
+        //--------- Initialises the Gui Manager ---------
+        //-----------------------------------------------
+        tutGuiManager = new GuiManager();
+
         //---------------------------------------
         //------------ Adds Commands ------------
         //---------------------------------------
-        getCommand("blockspy").setTabCompleter(new PlayersPlayingTutorialsCompleter());
-        getCommand("blockspy").setExecutor(new Blockspy());
+        getCommand("blockspy").setTabCompleter(new PlayersPlayingTutorialsCompleter(this));
+        getCommand("blockspy").setExecutor(new Blockspy(this));
 
         //---------------------------------------
         //------------ Enable Services ----------
@@ -273,7 +281,7 @@ public class TeachingTutorials extends JavaPlugin
             public void run()
             {
                 //Deal with external events in the DB
-                ArrayList<Event> events = Event.getLatestEvents(dbConnection, instance.getLogger());
+                ArrayList<Event> events = Event.getLatestEvents(dbConnection, getLogger());
                 int iNumEvents = events.size();
                 Event event;
                 User user;
@@ -285,7 +293,7 @@ public class TeachingTutorials extends JavaPlugin
                     event = events.get(i);
 
                     //Gets the user from the list of the plugin's users based on the player
-                    user = User.identifyUser(instance, event.getPlayer());
+                    user = User.identifyUser(TeachingTutorials.this, event.getPlayer());
                     if (user != null)
                     {
                         MainMenu.performEvent(event.getEventType(), user, TeachingTutorials.this, event.getData());
@@ -295,7 +303,7 @@ public class TeachingTutorials extends JavaPlugin
                         So we want to keep the event around if that happens so on the next run through the user who might
                         Now be on the server will be taken to a tutorial or whatever
                          */
-                        event.remove();
+                        event.remove(dbConnection, getLogger());
                     }
                     //else
                         //Do nothing, they may still be in server transport
@@ -361,7 +369,7 @@ public class TeachingTutorials extends JavaPlugin
         this.getServer().getScheduler().scheduleSyncRepeatingTask(this, () ->
         {
             //Run the resetting
-            Bukkit.getScheduler().runTask(TeachingTutorials.getInstance(), new Runnable() {
+            Bukkit.getScheduler().runTask(TeachingTutorials.this, new Runnable() {
                 @Override
                 public void run()
                 {
@@ -386,7 +394,7 @@ public class TeachingTutorials extends JavaPlugin
                         }
 
                         //Get the list of virtual blocks
-                        VirtualBlockGroup[] virtualBlockGroups = TeachingTutorials.getInstance().getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
+                        VirtualBlockGroup[] virtualBlockGroups = TeachingTutorials.this.getVirtualBlockGroups().toArray(VirtualBlockGroup[]::new);
 
                         //Declares the temporary list object
                         VirtualBlockGroup<Location, BlockData> virtualBlockGroup;
@@ -399,7 +407,7 @@ public class TeachingTutorials extends JavaPlugin
                             virtualBlockGroup = virtualBlockGroups[j];
 
                             //Call for the world blocks to be reset
-                            virtualBlockGroup.resetWorld();
+                            virtualBlockGroup.resetWorld(TeachingTutorials.this);
                             //Todo: These don't get done in sync. All world setting needs to be waited on with events.
                             //In order to solve this temporarily, make sure the virtual block refresh period occurs more frequently
                             // than the world reset
@@ -419,7 +427,7 @@ public class TeachingTutorials extends JavaPlugin
 
         //Handles menus
         new PlayerInteract(this);
-        new InventoryClickedOrClosed(this);
+        new GuiListener(tutGuiManager).register(this);
 
         //Handles tpll, ll and /tutorials
         new GlobalPlayerCommandProcess(this);
@@ -730,7 +738,7 @@ public class TeachingTutorials extends JavaPlugin
         //Insert the new tutorial into the tutorials table
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = this.getDBConnection().getConnection().createStatement();
             sql = "INSERT INTO `Tutorials` (`TutorialName`, `Author`) VALUES ('"+tutorial.getTutorialName()+"', '"+tutorial.getUUIDOfAuthor() +"')";
             SQL.executeUpdate(sql);
 
@@ -879,14 +887,7 @@ public class TeachingTutorials extends JavaPlugin
     public void onDisable()
     {
         // Plugin shutdown logic
-    }
-
-    /**
-     * @return A reference to the main instance of the TeachingTutorials plugin
-     */
-    public static TeachingTutorials getInstance()
-    {
-        return instance;
+        dbConnection.disconnect();
     }
 
     /**
@@ -896,15 +897,7 @@ public class TeachingTutorials extends JavaPlugin
     {
         return dbConnection;
     }
-
-    /**
-     * @return A reference to the main SQL connection object of the TeachingTutorials plugin
-     */
-    public Connection getConnection()
-    {
-        return (dbConnection.getConnection());
-    }
-
+    
     /**
      * @return The promotion service that is enabled.
      */
@@ -930,7 +923,8 @@ public class TeachingTutorials extends JavaPlugin
             this.saveResource("TutorialsDDL.sql", false);
 
             //Creates a file object and sets it to the path of the Tutorials DB creation DDL
-            File file = new File("/home/container/plugins/TeachingTutorials/TutorialsDDL.sql");
+            String path = getDataFolder().getAbsolutePath() + "/TutorialsDDL.sql";
+            File file = new File(path);
 
             fileReader = new FileReader(file);
             bufferedReader = new BufferedReader(fileReader);

@@ -356,9 +356,11 @@ public class Location
 
     /**
      * Inserts a new location into the database based on the data in this object
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return Whether the new location was successfully added to the database
      */
-    public boolean insertNewLocation()
+    public boolean insertNewLocation(DBConnection dbConnection, Logger logger)
     {
         String sql;
         Statement SQL = null;
@@ -368,7 +370,7 @@ public class Location
 
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
             sql = "INSERT INTO `Locations` (`TutorialID`) VALUES (" +iTutorialID+")";
             iCount = SQL.executeUpdate(sql);
 
@@ -386,12 +388,12 @@ public class Location
         }
         catch (SQLException se)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - SQL Error adding new location", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error adding new location", se);
             return false;
         }
         catch (Exception e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - Non-SQL Error adding new location", e);
+            logger.log(Level.SEVERE, "SQL - Non-SQL Error adding new location", e);
             return false;
         }
     }
@@ -432,9 +434,11 @@ public class Location
 
     /**
      * Changes the boolean value of whether this tutorial is "in-use" or not in the DB. Negates the current value.
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return Whether the update completed
      */
-    public boolean toggleInUse()
+    public boolean toggleInUse(DBConnection dbConnection, Logger logger)
     {
         String sql;
         Statement SQL = null;
@@ -443,7 +447,7 @@ public class Location
 
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
             if (bInUse)
                 sql = "UPDATE `Locations` SET InUse = 0 WHERE LocationID = "+iLocationID;
             else
@@ -457,12 +461,12 @@ public class Location
         }
         catch (SQLException se)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - SQL Error updating name of location", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error updating name of location", se);
             return false;
         }
         catch (Exception e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - Non-SQL Error updating name of location", e);
+            logger.log(Level.SEVERE, "SQL - Non-SQL Error updating name of location", e);
             return false;
         }
     }
@@ -470,11 +474,13 @@ public class Location
     /**
      * Deletes a location from the DB
      * @param iLocationID The location ID of the location to delete
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return Whether the location was successfully deleted
      */
-    public static boolean deleteLocationByID(int iLocationID)
+    public static boolean deleteLocationByID(int iLocationID, DBConnection dbConnection, Logger logger)
     {
-        TeachingTutorials.getInstance().getLogger().log(Level.INFO, "Removing location " +iLocationID +" from the DB");
+        logger.log(Level.INFO, "Removing location " +iLocationID +" from the DB");
         String sql;
         Statement SQL = null;
 
@@ -482,17 +488,17 @@ public class Location
 
         try
         {
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
 
             //Removes the answers
             sql = "DELETE FROM `LocationTasks` WHERE `LocationID` = " +iLocationID;
             iCount = SQL.executeUpdate(sql);
-            TeachingTutorials.getInstance().getLogger().log(Level.INFO, iCount +" LocationTasks were deleted");
+            logger.log(Level.INFO, iCount +" LocationTasks were deleted");
 
             //Removes the location specific step details
             sql = "DELETE FROM `LocationSteps` WHERE `Location` = " +iLocationID;
             iCount = SQL.executeUpdate(sql);
-            TeachingTutorials.getInstance().getLogger().log(Level.INFO, iCount +" LocationSteps were deleted");
+            logger.log(Level.INFO, iCount +" LocationSteps were deleted");
 
             //Removes the location
             sql = "DELETE FROM `Locations` WHERE `LocationID` = " +iLocationID;
@@ -502,12 +508,12 @@ public class Location
         }
         catch (SQLException se)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL Error deleting location with LocationID = "+iLocationID, se);
+            logger.log(Level.SEVERE, "SQL Error deleting location with LocationID = "+iLocationID, se);
             return false;
         }
         catch (Exception e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "Non-SQL Error deleting location with LocationID = "+iLocationID, e);
+            logger.log(Level.SEVERE, "Non-SQL Error deleting location with LocationID = "+iLocationID, e);
             return false;
         }
     }

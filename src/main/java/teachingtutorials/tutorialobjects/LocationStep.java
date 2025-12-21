@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialplaythrough.StepPlaythrough;
+import teachingtutorials.utils.DBConnection;
 import teachingtutorials.utils.GeometricUtils;
 import teachingtutorials.utils.Display;
 
@@ -68,7 +69,7 @@ public class LocationStep
      * @param location A reference to the location of this LocationStep
      * @param step A reference to the step of this LocationStep
      */
-    public LocationStep(Location location, Step step, boolean bIsSaved)
+    public LocationStep(Location location, Step step, boolean bIsSaved, Logger logger)
     {
         this.bIsSaved = bIsSaved;
         this.location = location;
@@ -85,7 +86,7 @@ public class LocationStep
         //If hologram needed then we set this to false as the location is not set yet
 
         if (bHologramLocationSet)
-            TeachingTutorials.getInstance().getLogger().log(Level.FINE, "Hologram location is set because no hologram is needed");
+            logger.log(Level.FINE, "Hologram location is set because no hologram is needed");
     }
 
     /**
@@ -148,11 +149,13 @@ public class LocationStep
      * Accesses the DB and fetches the information about the step location
      * @param step The tutorials step of the LocationStep
      * @param location The tutorials location of the LocationStep
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return A LocationStep object with the details of the LocationStep for the inputted step and location
      */
-    public static LocationStep getFromStepAndLocation(Location location, Step step)
+    public static LocationStep getFromStepAndLocation(Location location, Step step, DBConnection dbConnection, Logger logger)
     {
-        LocationStep locationStep = new LocationStep(location, step, true);
+        LocationStep locationStep = new LocationStep(location, step, true, logger);
 
         String sql;
         Statement SQL = null;
@@ -162,7 +165,7 @@ public class LocationStep
         {
             //Compiles the command to fetch the location step
             sql = "SELECT * FROM `LocationSteps` WHERE `Step` = "+step.getStepID() +" AND `Location` = " +location.getLocationID();
-            SQL = TeachingTutorials.getInstance().getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
 
             //Executes the query
             resultSet = SQL.executeQuery(sql);
@@ -182,26 +185,26 @@ public class LocationStep
         }
         catch (SQLException se)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - SQL Error fetching Steps by StageID", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error fetching Steps by StageID", se);
         }
         catch (Exception e)
         {
-            TeachingTutorials.getInstance().getLogger().log(Level.SEVERE, "SQL - Non-SQL Error fetching Steps by StageID", e);
+            logger.log(Level.SEVERE, "SQL - Non-SQL Error fetching Steps by StageID", e);
         }
         return locationStep;
     }
 
     /**
      * Adds the location step to the DB
-     * @param plugin A reference to the instance of the TeachingTutorials plugin - used for accessing the DB and the
-     *               logger
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return Whether the details were added successfully
      */
-    public boolean storeDetailsInDB(TeachingTutorials plugin)
+    public boolean storeDetailsInDB(DBConnection dbConnection, Logger logger)
     {
         //Diverts to the update
         if (bIsSaved)
-            return updateDetailsInDB(plugin);
+            return updateDetailsInDB(dbConnection, logger);
 
         //Sanitise the instructions
         String szNewInstructions = szInstructions.replace("\\'", "'");
@@ -214,7 +217,7 @@ public class LocationStep
 
         try
         {
-            SQL = plugin.getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
             sql = "INSERT INTO `LocationSteps` (`Location`, `Step`, `Latitude`, `Longitude`, `StartYaw`, `StartPitch`, `Instructions`, `InstructionsX`, `InstructionsY`, `InstructionsZ`, `VideoWalkthroughLink`) VALUES ("
                     + location.getLocationID() +", "
                     + step.getStepID() +", "
@@ -235,27 +238,27 @@ public class LocationStep
         }
         catch (SQLException se)
         {
-            plugin.getLogger().log(Level.SEVERE, "SQL - SQL Error adding new location step", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error adding new location step", se);
             return false;
         }
         catch (Exception e)
         {
-            plugin.getLogger().log(Level.SEVERE, "SQL - Non-Sql error adding new location step", e);
+            logger.log(Level.SEVERE, "SQL - Non-Sql error adding new location step", e);
             return false;
         }
     }
 
     /**
      * Updates the details in the database with the information in this object
-     * @param plugin A reference to the instance of the TeachingTutorials plugin - used for accessing the DB and the
-     *               logger
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      * @return Whether the database update was successful
      */
-    private boolean updateDetailsInDB(TeachingTutorials plugin)
+    private boolean updateDetailsInDB(DBConnection dbConnection, Logger logger)
     {
         //Diverts to the add
         if (!bIsSaved)
-            return storeDetailsInDB(plugin);
+            return storeDetailsInDB(dbConnection, logger);
 
         //Sanitise the instructions
         String szNewInstructions = szInstructions.replace("\\'", "'");
@@ -268,7 +271,7 @@ public class LocationStep
 
         try
         {
-            SQL = plugin.getConnection().createStatement();
+            SQL = dbConnection.getConnection().createStatement();
 
             sql = "UPDATE `LocationSteps` SET `Latitude` = "+dStartLatitude
                     + ", `Longitude` = " +dStartLongitude
@@ -287,12 +290,12 @@ public class LocationStep
         }
         catch (SQLException se)
         {
-            plugin.getLogger().log(Level.SEVERE, "SQL - SQL Error updating new location step", se);
+            logger.log(Level.SEVERE, "SQL - SQL Error updating new location step", se);
             return false;
         }
         catch (Exception e)
         {
-            plugin.getLogger().log(Level.SEVERE, "SQL - Non-Sql error updating new location step", e);
+            logger.log(Level.SEVERE, "SQL - Non-Sql error updating new location step", e);
             return false;
         }
     }
@@ -328,8 +331,10 @@ public class LocationStep
     /**
      * Sets the step start location
      * @param location The location of the intended step start location
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      */
-    public void setStartLocation(org.bukkit.Location location)
+    public void setStartLocation(org.bukkit.Location location, DBConnection dbConnection, Logger logger)
     {
         double[] longLat = GeometricUtils.convertToGeometricCoordinates(location.getX(), location.getZ());
 
@@ -345,7 +350,7 @@ public class LocationStep
         }
 
         if (bIsSaved)
-            updateDetailsInDB(TeachingTutorials.getInstance());
+            updateDetailsInDB(dbConnection, logger);
     }
 
     /**
@@ -370,8 +375,10 @@ public class LocationStep
      * @param stepPlaythrough A reference to the StepPlaythrough managing this change
      * @param player The player to which the location must be set to
      * @param szStepName The name of the step, so that the instructions can then be displayed
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      */
-    public void setHologramLocationToThatOfPlayer(StepPlaythrough stepPlaythrough, Player player, String szStepName)
+    public void setHologramLocationToThatOfPlayer(StepPlaythrough stepPlaythrough, Player player, String szStepName, DBConnection dbConnection, Logger logger)
     {
         //Sets the location
         org.bukkit.Location playerLocation = player.getLocation();
@@ -386,7 +393,7 @@ public class LocationStep
         this.bHologramLocationSet = true;
 
         if (bIsSaved)
-            updateDetailsInDB(TeachingTutorials.getInstance());
+            updateDetailsInDB(dbConnection, logger);
     }
 
     /**
@@ -406,8 +413,11 @@ public class LocationStep
      * @param displayType The display type, so the instructions can be displayed
      * @param player The player, so the instructions can be displayed
      * @param szStepName The player, so the instructions can be displayed
+     * @param dbConnection A database connection to a tutorials database
+     * @param logger A logger to output to
      */
-    public void setInstruction(StepPlaythrough stepPlaythrough, String szInstructions, Display.DisplayType displayType, Player player, String szStepName)
+    public void setInstruction(StepPlaythrough stepPlaythrough, String szInstructions, Display.DisplayType displayType,
+                               Player player, String szStepName, DBConnection dbConnection, Logger logger)
     {
         //Sets the instructions
         this.szInstructions = szInstructions;
@@ -421,7 +431,7 @@ public class LocationStep
         this.bInstructionsSet = true;
 
         if (bIsSaved)
-            updateDetailsInDB(TeachingTutorials.getInstance());
+            updateDetailsInDB(dbConnection, logger);
     }
 
     /**
@@ -463,7 +473,7 @@ public class LocationStep
 
     /**
      *
-     * @return Whether a link is available for this stepxw
+     * @return Whether a link is available for this step
      */
     public boolean isLinkAvailable()
     {

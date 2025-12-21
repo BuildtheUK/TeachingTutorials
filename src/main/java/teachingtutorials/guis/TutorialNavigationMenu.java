@@ -1,11 +1,14 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import teachingtutorials.TeachingTutorials;
 import teachingtutorials.tutorialplaythrough.PlaythroughMode;
 import teachingtutorials.tutorialplaythrough.TutorialPlaythrough;
 import teachingtutorials.utils.Display;
-import teachingtutorials.utils.User;
 import teachingtutorials.utils.Utils;
 
 /**
@@ -18,9 +21,9 @@ public class TutorialNavigationMenu extends Gui
      */
     private final TutorialPlaythrough tutorialPlaythrough;
 
-    public TutorialNavigationMenu(TutorialPlaythrough tutorialPlaythrough)
+    public TutorialNavigationMenu(TutorialPlaythrough tutorialPlaythrough, TeachingTutorials plugin)
     {
-        super(3*9, Display.colouredText("Tutorial Navigation Menu", NamedTextColor.AQUA));
+        super(plugin.getTutGuiManager(), 3*9, Display.colouredText("Tutorial Navigation Menu", NamedTextColor.AQUA));
 
         this.tutorialPlaythrough = tutorialPlaythrough;
     }
@@ -31,13 +34,9 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.canMoveBackStage())
             super.setItem(0, Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT,
                     1, TutorialGUIUtils.optionTitle("Stage Back"), TutorialGUIUtils.optionLore("Go back a stage")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             tutorialPlaythrough.previousStage();
                         }
                     });
@@ -46,13 +45,9 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.canMoveForwardsStage())
             super.setItem(8, Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT,
                             1, TutorialGUIUtils.optionTitle("Stage Forwards"), TutorialGUIUtils.optionLore("Skip to next stage")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             tutorialPlaythrough.skipStage();
                         }
                     });
@@ -61,13 +56,9 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.canMoveBackStep())
             super.setItem(2, Utils.createCustomSkullWithFallback("4eff72715e6032e90f50a38f4892529493c9f555b9af0d5e77a6fa5cddff3cd2", Material.ACACIA_BOAT,
                             1, TutorialGUIUtils.optionTitle("Step Back"), TutorialGUIUtils.optionLore("Go back a step")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             tutorialPlaythrough.previousStep();
                         }
                     });
@@ -76,41 +67,29 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.canMoveForwardsStep())
             super.setItem(6, Utils.createCustomSkullWithFallback("a7ba2aa14ae5b0b65573dc4971d3524e92a61dd779e4412e4642adabc2e56c44", Material.ACACIA_BOAT,
                             1, TutorialGUIUtils.optionTitle("Step Forwards"), TutorialGUIUtils.optionLore("Skip to next step")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             tutorialPlaythrough.skipStep();
                         }
                     });
 
         //Spawn
         super.setItem(20, Utils.createItem(Material.HORSE_SPAWN_EGG, 1, TutorialGUIUtils.optionTitle("TP to start of step")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         tutorialPlaythrough.tpToStepStart();
                     }
                 });
 
         //Exit
         super.setItem(22, Utils.createItem(Material.SPRUCE_DOOR, 1, TutorialGUIUtils.optionTitle("Pause and Save"), TutorialGUIUtils.optionLore("Back to lobby")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         tutorialPlaythrough.terminateEarly();
-                        u.player.closeInventory();
+                        tutorialPlaythrough.getCreatorOrStudent().player.closeInventory();
                     }
                 });
 
@@ -118,13 +97,9 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.currentStepHasVideoLink())
         {
             super.setItem(24, Utils.createItem(Material.PAINTING, 1, TutorialGUIUtils.optionTitle("Video Link")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             tutorialPlaythrough.callVideoLink();
                         }
                     });
@@ -134,13 +109,9 @@ public class TutorialNavigationMenu extends Gui
         if (tutorialPlaythrough.getCreatorOrStudent().player.getUniqueId().equals(tutorialPlaythrough.getTutorial().getUUIDOfAuthor()) && tutorialPlaythrough.getCurrentPlaythroughMode().equals(PlaythroughMode.PlayingLesson))
         {
             super.setItem(4, Utils.createItem(Material.WRITABLE_BOOK, 1, TutorialGUIUtils.optionTitle("Switch to edit mode"), TutorialGUIUtils.optionLore("Restart step in edit mode")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             //Switch the playthrough mode
                             tutorialPlaythrough.setCurrentPlaythroughMode(PlaythroughMode.EditingLocation);
                         }
@@ -149,13 +120,9 @@ public class TutorialNavigationMenu extends Gui
         else if (tutorialPlaythrough.getCurrentPlaythroughMode().equals(PlaythroughMode.CreatingLocation))
         {
             super.setItem(4, Utils.createItem(Material.WRITABLE_BOOK, 1, TutorialGUIUtils.optionTitle("Open step editor menu")),
-                    new guiAction() {
+                    new GuiAction() {
                         @Override
-                        public void rightClick(User u) {
-                            leftClick(u);
-                        }
-                        @Override
-                        public void leftClick(User u) {
+                        public void click(InventoryClickEvent event) {
                             //Open the step editor menu
                             tutorialPlaythrough.openStepEditorMenu();
                         }
@@ -167,11 +134,21 @@ public class TutorialNavigationMenu extends Gui
      * Refresh the gui.
      * This usually involves clearing the content and recreating it.
      */
-    @Override
     public void refresh()
     {
-        this.clearGui();
+        this.clear();
 
         this.addItems();
+    }
+
+    /**
+     * Refreshes and opens the menu
+     * @param player The player to open the menu for
+     */
+    @Override
+    public void open(Player player)
+    {
+        refresh();
+        super.open(player);
     }
 }

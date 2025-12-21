@@ -95,7 +95,7 @@ public abstract class TutorialPlaythrough
         this.stagePlaythroughs = StagePlaythrough.fetchStagesByTutorialIDForPlaythrough(this.getCreatorOrStudent().player, plugin, this);
 
         //Sets up the nav menu
-        navigationMenu = new TutorialNavigationMenu(this);
+        navigationMenu = new TutorialNavigationMenu(this, plugin);
     }
 
     /**
@@ -179,7 +179,7 @@ public abstract class TutorialPlaythrough
     {
         this.navigationMenu.refresh();
         this.creatorOrStudent.mainGui = this.navigationMenu;
-        this.creatorOrStudent.mainGui.open(creatorOrStudent);
+        this.creatorOrStudent.mainGui.open(creatorOrStudent.player);
     }
 
     public void openStepEditorMenu()
@@ -190,7 +190,7 @@ public abstract class TutorialPlaythrough
             return;
         }
         this.creatorOrStudent.mainGui = this.currentStagePlaythrough.currentStepPlaythrough.getEditorMenu();
-        this.creatorOrStudent.mainGui.open(creatorOrStudent);
+        this.creatorOrStudent.mainGui.open(creatorOrStudent.player);
     }
 
     /**

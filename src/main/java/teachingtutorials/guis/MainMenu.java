@@ -1,8 +1,10 @@
 package teachingtutorials.guis;
 
+import net.bteuk.minecraft.gui.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import teachingtutorials.TeachingTutorials;
 import teachingtutorials.guis.adminscreators.CreatorMenu;
@@ -27,10 +29,10 @@ public class MainMenu extends Gui
     private static final int iNumRows = 27;
 
     /** Gets the config */
-    private final FileConfiguration config = TeachingTutorials.getInstance().getConfig();
+    private final FileConfiguration config;
 
     /** Gets the compulsory tutorial setting */
-    private final boolean bCompulsoryTutorialEnabled = config.getBoolean("Compulsory_Tutorial.Enabled");
+    private final boolean bCompulsoryTutorialEnabled;
 
     /** The Tutorial of the compulsory tutorial. Null if no compulsory tutorial is set */
     private Tutorial compulsoryTutorial;
@@ -47,7 +49,6 @@ public class MainMenu extends Gui
     /** The next tutorial which a player would play if clicking continue learning */
     private Tutorial nextTutorial;
 
-
     /**
      *
      * @param plugin A reference to the instance of the TeachingTutorials plugin
@@ -55,8 +56,10 @@ public class MainMenu extends Gui
      */
     public MainMenu(TeachingTutorials plugin, User user)
     {
-        super(iNumRows, inventoryName);
+        super(plugin.getTutGuiManager(), iNumRows, inventoryName);
         this.plugin = plugin;
+        this.config = plugin.getConfig();
+        this.bCompulsoryTutorialEnabled = config.getBoolean("Compulsory_Tutorial.Enabled");
         this.user = user;
 
         fetchInformation();
@@ -109,9 +112,9 @@ public class MainMenu extends Gui
             else
                 compulsoryNotFinished(compulsoryLesson);
         }
-        else
+        else {
             //User has not completed compulsory tutorial or doesn't need to
-            compulsoryFinished();
+            compulsoryFinished(); }
 
 
         //Admin and creator menu
@@ -119,15 +122,11 @@ public class MainMenu extends Gui
         {
             //Admin and creator menu
             super.setItem(19 - 1, Utils.createItem(Material.LECTERN, 1,
-                    TutorialGUIUtils.optionTitle("Creator Menu")), new guiAction() {
+                    TutorialGUIUtils.optionTitle("Creator Menu")), new GuiAction() {
                 @Override
-                public void rightClick(User u) {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u) {
+                public void click(InventoryClickEvent event) {
                     user.mainGui = new CreatorMenu(plugin, user);
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                     delete();
                 }
             });
@@ -143,13 +142,9 @@ public class MainMenu extends Gui
                 TutorialGUIUtils.optionTitle("Begin the Starter Tutorial"),
                 TutorialGUIUtils.optionLore("Gain the " +config.getString("Compulsory_Tutorial.RankNew") +" rank"));
 
-        super.setItem(14 - 1, beginCompulsory, new guiAction() {
+        super.setItem(14 - 1, beginCompulsory, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 startTutorial(compulsoryTutorial, null);
             }
         });
@@ -167,13 +162,9 @@ public class MainMenu extends Gui
                 TutorialGUIUtils.optionTitle("Restart the Starter Tutorial"),
                 TutorialGUIUtils.optionLore("Gain the " +config.getString("Compulsory_Tutorial.RankNew") +" rank"));
 
-        super.setItem(12 - 1, restartCompulsory, new guiAction() {
+        super.setItem(12 - 1, restartCompulsory, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 resumeLesson(compulsoryLesson, true);
             }
         });
@@ -184,13 +175,9 @@ public class MainMenu extends Gui
                 TutorialGUIUtils.optionTitle("Resume the Starter Tutorial"),
                 TutorialGUIUtils.optionLore("Gain the " +config.getString("Compulsory_Tutorial.RankNew") +" rank"));
 
-        super.setItem(16 - 1, resumeCompulsory, new guiAction() {
+        super.setItem(16 - 1, resumeCompulsory, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 resumeLesson(compulsoryLesson, false);
             }
         });
@@ -206,14 +193,9 @@ public class MainMenu extends Gui
                 TutorialGUIUtils.optionTitle("Redo the Starter Tutorial"),
                 TutorialGUIUtils.optionLore("Refresh your essential knowledge"));
 
-        super.setItem(9, compulsory, new guiAction() {
+        super.setItem(9, compulsory, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u)
-            {
+            public void click(InventoryClickEvent event) {
                 startTutorial(compulsoryTutorial, null);
             }
         });
@@ -224,17 +206,12 @@ public class MainMenu extends Gui
                 TutorialGUIUtils.optionTitle("Tutorial Library"),
                 TutorialGUIUtils.optionLore("Browse all of our available tutorials"));
 
-        super.setItem(11, tutorialLibrary, new guiAction() {
+        super.setItem(11, tutorialLibrary, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u)
-            {
+            public void click(InventoryClickEvent event) {
                 user.mainGui = new LibraryMenu(plugin, user, Tutorial.getInUseTutorialsWithLocations(plugin.getDBConnection(), plugin.getLogger()),
                         LessonObject.getUnfinishedLessonsOfPlayer(user.player.getUniqueId(), plugin.getDBConnection(), plugin.getLogger()));
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
                 delete();
             }
         });
@@ -244,52 +221,39 @@ public class MainMenu extends Gui
         ItemStack currentLessons = Utils.createItem(Material.WRITABLE_BOOK, 1,
                 TutorialGUIUtils.optionTitle("Current Lessons"),
                 TutorialGUIUtils.optionLore("View your unfinished lessons"));
-        super.setItem(13, currentLessons, new guiAction() {
+        super.setItem(13, currentLessons, new GuiAction() {
             @Override
-            public void rightClick(User u) {
-                leftClick(u);
-            }
-            @Override
-            public void leftClick(User u) {
+            public void click(InventoryClickEvent event) {
                 user.mainGui = new LessonsMenu(plugin, user, MainMenu.this, MainMenu.this.currentLessons);
-                user.mainGui.open(user);
+                user.mainGui.open(user.player);
             }
         });
 
 
         //Tutorial recommendations
         super.setItem(15, Utils.createItem(Material.CHEST, 1, TutorialGUIUtils.optionTitle("Recommended Tutorials")),
-                new guiAction() {
+                new GuiAction() {
                     @Override
-                    public void rightClick(User u) {
-                        leftClick(u);
-                    }
-                    @Override
-                    public void leftClick(User u) {
+                    public void click(InventoryClickEvent event) {
                         user.mainGui = new RecommendedTutorialsMenu(plugin, MainMenu.this, user, TutorialRecommendation.fetchTutorialRecommendationsForPlayer(plugin.getDBConnection(), plugin.getLogger(), user.player.getUniqueId()));
-                        user.mainGui.open(user);
+                        user.mainGui.open(user.player);
                     }
                 });
 
 
         //Continue learning/next tutorial
-        ItemStack continueLearning = Utils.createItem(Material.END_CRYSTAL, 1,
-                TutorialGUIUtils.optionTitle("Start a new Tutorial:"),
-                TutorialGUIUtils.optionLore(nextTutorial.getTutorialName()));
 
-        if (nextTutorial != null)
-            super.setItem(17 , continueLearning, new guiAction() {
+        if (nextTutorial != null) {
+            ItemStack continueLearning = Utils.createItem(Material.END_CRYSTAL, 1,
+                    TutorialGUIUtils.optionTitle("Start a new Tutorial:"),
+                    TutorialGUIUtils.optionLore(nextTutorial.getTutorialName()));
+
+                super.setItem(17 , continueLearning, new GuiAction() {
                 @Override
-                public void rightClick(User u)
-                {
-                    leftClick(u);
-                }
-                @Override
-                public void leftClick(User u)
-                {
+                public void click(InventoryClickEvent event) {
                     startTutorial(nextTutorial, null);
                 }
-            });
+            }); }
     }
 
 
@@ -327,7 +291,7 @@ public class MainMenu extends Gui
                         bLessonFound = true;
 
                         user.mainGui = new LessonContinueConfirmer(plugin, user, this, lesson, "You have a lesson at this location already");
-                        user.mainGui.open(user);
+                        user.mainGui.open(user.player);
 
                         //Break, let the other menu take over
                         break;
@@ -338,7 +302,7 @@ public class MainMenu extends Gui
                     bLessonFound = true;
                     //If not then open confirmation menu
                     user.mainGui = new LessonContinueConfirmer(plugin, user, this, lesson, "You have a lesson for this tutorial already");
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
 
                     //Break, let the other menu take over
                     break;
@@ -419,7 +383,7 @@ public class MainMenu extends Gui
                 if (user.player.hasPermission("TeachingTutorials.Admin") || user.player.hasPermission("TeachingTutorials.Creator"))
                 {
                     user.mainGui = new CreatorMenu(plugin, user);
-                    user.mainGui.open(user);
+                    user.mainGui.open(user.player);
                     return true;
                 }
                 else
@@ -482,13 +446,12 @@ public class MainMenu extends Gui
     /**
      * Clears items from the GUI, recreates the items and then opens the menu
      */
-    @Override
     public void refresh()
     {
-        this.clearGui();
+        this.clear();
         fetchInformation();
         this.addMenuOptions();
 
-        this.open(user);
+        this.open(user.player);
     }
 }

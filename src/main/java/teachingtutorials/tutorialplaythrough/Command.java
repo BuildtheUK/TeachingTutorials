@@ -199,10 +199,7 @@ public class Command extends PlaythroughTask implements Listener
 
             //Prompt difficulty
             taskEditorMenu.taskFullySet();
-            taskEditorMenu.refresh();
-
-            User user = parentGroupPlaythrough.getParentStep().getParentStage().getTutorialPlaythrough().getCreatorOrStudent();
-            taskEditorMenu.open(user);
+            taskEditorMenu.open(player);
 
             //SpotHit is then called from inside the difficulty panel once the difficulty has been established
             //This is what moves it onto the next task
@@ -364,7 +361,7 @@ public class Command extends PlaythroughTask implements Listener
 
             //Calculates the virtual blocks based on the selection and the command
             //The Second argument is a reference to the virtual blocks list for this task, to which the calculation will add any virtual blocks to
-            WorldEdit.BlocksCalculator(super.getLocationTask().iTaskID, virtualBlocks, regionSelector, szTargetCommand, szTargetCommandArgs.split(" "), parentGroupPlaythrough.getParentStep().getParentStage().getTutorialPlaythrough());
+            WorldEdit.BlocksCalculator(plugin, super.getLocationTask().iTaskID, virtualBlocks, regionSelector, szTargetCommand, szTargetCommandArgs.split(" "), parentGroupPlaythrough.getParentStep().getParentStage().getTutorialPlaythrough());
 
             //It will create a new calculation object and add this to the queue. The plugin will calculate the blocks when available and add these to the virtual blocks list sent across
         }

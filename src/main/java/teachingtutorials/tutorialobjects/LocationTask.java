@@ -161,7 +161,7 @@ public class LocationTask extends Task
             sql = "INSERT INTO `LocationTasks` (`LocationID`, `TaskID`, `Answers`, `TpllDifficulty`, `WEDifficulty`, `ColouringDifficulty`, `DetailingDifficulty`, `TerraDifficulty`) " +
                     "VALUES (" +iLocationID+", " +iTaskID+", '" +szAnswers+"'";
 
-            SQL = plugin.getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             for (int i = 0 ; i <=4 ; i++)
             {
@@ -205,7 +205,7 @@ public class LocationTask extends Task
 
         try
         {
-            SQL = plugin.getConnection().createStatement();
+            SQL = plugin.getDBConnection().getConnection().createStatement();
 
             sql = "UPDATE `LocationTasks` SET `Answers` = '"+szAnswers+"'"
                     + ", `TpllDifficulty` = " +fDifficulties[0]

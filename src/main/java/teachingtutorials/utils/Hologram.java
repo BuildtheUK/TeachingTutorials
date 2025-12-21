@@ -30,7 +30,7 @@ public class Hologram
      * @param iStepID The step ID of the step which this hologram is a part of - used to compile the name of
      *                the hologram
      */
-    public Hologram(Location location, TutorialPlaythrough playthrough, String szTitle, String szText, int iStepID)
+    public Hologram(Location location, TutorialPlaythrough playthrough, String szTitle, String szText, int iStepID, final int iMax_Width)
     {
         this.playthrough = playthrough;
 
@@ -57,8 +57,6 @@ public class Hologram
         String szDisplayedText;
 
         //The maximum width a hologram line can be
-        final int iMax_Width = TeachingTutorials.getInstance().getConfig().getInt("Hologram_Max_Width");
-
         boolean bCreateNewLineAfter;
         bCreateNewLineAfter = false;
 

@@ -47,7 +47,7 @@ public class TutorialCreationSession
         menu = new NewTutorialMenu(this, newTutorial);
         creator.mainGui = menu;
         //Open the menu for the creator
-        menu.open(creator);
+        menu.open(creator.player);
 
 
         //Any further logic is handled by the menus themselves
@@ -64,7 +64,7 @@ public class TutorialCreationSession
         //Take player to creator tutorials menu
         CreatorTutorialsMenu creatorTutorialsMenu = new CreatorTutorialsMenu(plugin, creator, Tutorial.fetchAll(false, false, creator.player.getUniqueId(), plugin.getDBConnection(), plugin.getLogger()));
         creator.mainGui = creatorTutorialsMenu;
-        creator.mainGui.open(creator);
+        creator.mainGui.open(creator.player);
 
         //Delete the new tutorial menu
         menu.delete();
@@ -96,7 +96,7 @@ public class TutorialCreationSession
                     addTutorial();
                 }
             }, TutorialGUIUtils.optionLore("Add tutorial to the database"), TutorialGUIUtils.optionLore("Back to tutorial menu"));
-            confirmConfirmation.open(creator);
+            confirmConfirmation.open(creator.player);
         }
     }
 
@@ -111,7 +111,7 @@ public class TutorialCreationSession
         //Take player to creator tutorials menu
         CreatorTutorialsMenu creatorTutorialsMenu = new CreatorTutorialsMenu(plugin, creator, Tutorial.fetchAll(false, false, creator.player.getUniqueId(), plugin.getDBConnection(), plugin.getLogger()));
         creator.mainGui = creatorTutorialsMenu;
-        creator.mainGui.open(creator);
+        creator.mainGui.open(creator.player);
 
         menu.delete();
     }
