@@ -6,12 +6,12 @@ MySQL_Database_Information:
   username: newuser1
   password: xxxx
 
-# The slot in which the learning menu icon should appear in
+# The slot in which the learning menu icon should appear in (use 0 to disable)
 Learning_Menu_Slot: 5
 
 # The settings related to the compulsory tutorial
 Compulsory_Tutorial:
-  # Whether or not the player must complete a compulsory tutorial before doing other tutorials
+  # Whether the player must complete a compulsory tutorial before doing other tutorials
   # true or false
   # If you have selected this as true then you must specify a promotion type (below)
   # If you have selected this as false then the options below can be blank or anything. They will be ignored.
