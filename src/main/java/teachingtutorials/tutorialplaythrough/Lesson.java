@@ -527,14 +527,15 @@ public class Lesson extends TutorialPlaythrough
         {
             //Sets up the statement
             SQL = plugin.getDBConnection().getConnection().createStatement();
-            szSql = "INSERT INTO `Lessons` (`UUID`, `TutorialID`, `Finished`, `StageAt`, `StepAt`, `LocationID`)" +
+            szSql = "INSERT INTO `Lessons` (`UUID`, `TutorialID`, `Finished`, `StageAt`, `StepAt`, `LocationID`, `StartedAt`)" +
                     " VALUES ("
                     +"'"+creatorOrStudent.player.getUniqueId()+"', "
                     +this.tutorial.getTutorialID()+", "
                     +"0, "
                     +"1, "
                     +"1, "
-                    +this.location.getLocationID() +")";
+                    +this.location.getLocationID() +"," +
+                    "CURRENT_TIMESTAMP())";
 
             //Executes the update
             SQL.executeUpdate(szSql);
@@ -620,13 +621,13 @@ public class Lesson extends TutorialPlaythrough
         try
         {
             SQL = plugin.getDBConnection().getConnection().createStatement();
-            szSql = "UPDATE `Lessons` SET `Finished` = 1 WHERE `LessonID` = "+ this.iLessonID;
+            szSql = "UPDATE `Lessons` SET `Finished` = 1, CompletedAt = CURRENT_TIMESTAMP() WHERE `LessonID` = "+ this.iLessonID;
             SQL.executeUpdate(szSql);
         }
         catch (Exception e)
         {
             //Reports error to the console
-            plugin.getLogger().log(Level.SEVERE, "Error whilst updating a lesson to Finished = 1 for: " +creatorOrStudent.player.getName() +": "+creatorOrStudent.player.getUniqueId(), e);
+            plugin.getLogger().log(Level.SEVERE, "Error whilst updating a lesson to Finished = 1 and CompletedAt Timestamp for: " +creatorOrStudent.player.getName() +": "+creatorOrStudent.player.getUniqueId(), e);
         }
     }
 }

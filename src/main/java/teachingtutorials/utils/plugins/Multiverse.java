@@ -1,10 +1,13 @@
 package teachingtutorials.utils.plugins;
 
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import org.bukkit.*;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
+import org.mvplugins.multiverse.core.MultiverseCoreApi;
+import org.mvplugins.multiverse.core.world.LoadedMultiverseWorld;
+import org.mvplugins.multiverse.core.world.MultiverseWorld;
+import org.mvplugins.multiverse.core.world.WorldManager;
+import org.mvplugins.multiverse.core.world.options.CreateWorldOptions;
+import org.mvplugins.multiverse.core.world.options.DeleteWorldOptions;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,7 +24,7 @@ public class Multiverse
      */
     public static boolean createVoidWorld(String name, Logger logger)
     {
-        MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+        MultiverseCoreApi core = MultiverseCoreApi.get();
 
         if (core == null)
         {
@@ -29,27 +32,25 @@ public class Multiverse
             return false;
         }
 
-        MVWorldManager worldManager = core.getMVWorldManager();
+        WorldManager worldManager = core.getWorldManager();
 
-        worldManager.addWorld(
-                name,
-                World.Environment.NORMAL,
-                null,
-                WorldType.FLAT,
-                false,
-                "VoidGen:{biome:PLAINS}"
-        );
+        CreateWorldOptions createWorldOptions = CreateWorldOptions.worldName(name).biome("VoidGen:{biome:PLAINS}").environment(World.Environment.NORMAL)
+                .worldType(WorldType.FLAT)
+                .generateStructures(false);
 
-        MultiverseWorld MVWorld = worldManager.getMVWorld(name);
-        MVWorld.setGameMode(GameMode.CREATIVE);
-        MVWorld.setAllowAnimalSpawn(false);
-        MVWorld.setAllowMonsterSpawn(false);
-        MVWorld.setDifficulty(Difficulty.PEACEFUL);
-        MVWorld.setEnableWeather(false);
-        MVWorld.setHunger(false);
-        MVWorld.setAllowFlight(true);
-        MVWorld.setKeepSpawnInMemory(false);
-        MVWorld.setEnableWeather(false);
+        LoadedMultiverseWorld loadedMultiverseWorld = worldManager.createWorld(createWorldOptions).getOrNull();
+        if (loadedMultiverseWorld == null)
+        {
+            logger.severe("MV Error: World did not get created!");
+            return false;
+        }
+
+        loadedMultiverseWorld.setGameMode(GameMode.CREATIVE);
+        loadedMultiverseWorld.setDifficulty(Difficulty.PEACEFUL);
+        loadedMultiverseWorld.setAllowWeather(false);
+        loadedMultiverseWorld.setHunger(false);
+        loadedMultiverseWorld.setAllowFlight(true);
+        loadedMultiverseWorld.setKeepSpawnInMemory(false);
 
         //Get world from bukkit.
         World world = Bukkit.getWorld(name);
@@ -69,32 +70,11 @@ public class Multiverse
         //Disable random tick.
         world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
 
-        Bukkit.getLogger().info("Created new world with name " + name);
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+
+        logger.info("Created new world with name " + name);
 
         return true;
-    }
-
-    /**
-     * Returns whether there is a world which exists with the given name
-     * @param name
-     * @return Whether such a world exists
-     */
-    public static boolean hasWorld(String name, Logger logger)
-    {
-        MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
-
-        if (core == null) {
-            logger.log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
-            return false;
-        }
-
-        //If the world exists return true.
-
-        MVWorldManager worldManager = core.getMVWorldManager();
-
-        MultiverseWorld world = worldManager.getMVWorld(name);
-
-        return world != null;
     }
 
     /**
@@ -104,23 +84,22 @@ public class Multiverse
      */
     public static boolean deleteWorld(String name, Logger logger)
     {
-        MultiverseCore core = (MultiverseCore) Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+        MultiverseCoreApi core = MultiverseCoreApi.get();
 
         if (core == null) {
             logger.log(Level.SEVERE, "Multiverse is a dependency of TeachingTutorials!");
             return false;
         }
 
-        //If world exists delete it.
-        MVWorldManager worldManager = core.getMVWorldManager();
+        WorldManager worldManager = core.getWorldManager();
 
-        MultiverseWorld world = worldManager.getMVWorld(name);
+        //If world exists delete it.
+        MultiverseWorld world = worldManager.getWorld(name).getOrNull();
 
         if (world == null) {
             return false;
         } else {
-            worldManager.removePlayersFromWorld(name);
-            worldManager.deleteWorld(name);
+            worldManager.deleteWorld(DeleteWorldOptions.world(world)).getOrNull();
             return true;
         }
 
