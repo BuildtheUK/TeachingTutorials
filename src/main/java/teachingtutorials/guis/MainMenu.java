@@ -244,7 +244,6 @@ public class MainMenu extends Gui
 
 
         //Continue learning/next tutorial
-
         if (nextTutorial != null) {
             ItemStack continueLearning = Utils.createItem(Material.END_CRYSTAL, 1,
                     TutorialGUIUtils.optionTitle("Start a new Tutorial:"),
