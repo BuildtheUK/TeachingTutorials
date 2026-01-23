@@ -188,18 +188,20 @@ public class MainMenu extends Gui
      */
     private void compulsoryFinished()
     {
-        //Compulsory tutorial
-        ItemStack compulsory = Utils.createItem(Material.JUNGLE_DOOR, 1,
-                TutorialGUIUtils.optionTitle("Redo the Starter Tutorial"),
-                TutorialGUIUtils.optionLore("Refresh your essential knowledge"));
+        if (compulsoryTutorial != null)
+        {
+            //Compulsory tutorial
+            ItemStack compulsory = Utils.createItem(Material.JUNGLE_DOOR, 1,
+                    TutorialGUIUtils.optionTitle("Redo the Starter Tutorial"),
+                    TutorialGUIUtils.optionLore("Refresh your essential knowledge"));
 
-        super.setItem(9, compulsory, new GuiAction() {
-            @Override
-            public void click(InventoryClickEvent event) {
-                startTutorial(compulsoryTutorial, null);
-            }
-        });
-
+            super.setItem(9, compulsory, new GuiAction() {
+                @Override
+                public void click(InventoryClickEvent event) {
+                    startTutorial(compulsoryTutorial, null);
+                }
+            });
+        }
 
         //---------- Library Option ----------
         ItemStack tutorialLibrary = Utils.createItem(Material.BOOKSHELF, 1,
@@ -242,7 +244,6 @@ public class MainMenu extends Gui
 
 
         //Continue learning/next tutorial
-
         if (nextTutorial != null) {
             ItemStack continueLearning = Utils.createItem(Material.END_CRYSTAL, 1,
                     TutorialGUIUtils.optionTitle("Start a new Tutorial:"),
