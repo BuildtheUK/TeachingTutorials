@@ -11,16 +11,12 @@
 Overall this system would start to make use of more teaching techniques which work in the real world. It would support people independently working stuff out for themselves, a gradual buildup of difficulty as someone progresses, targeted learning in areas an applicant is not so good at and an automatic way to score people without players feeling like it’s a test.
 It will provide a foundation for a tutorials system which can be used throughout the Build the Earth project. It is future proofed and has much potential to be expanded upon.
 
-## Credits
-#### WorldEdit
-#### WorldGuard
-#### Multiverse
-#### VoidGen
-
 
 ## Versions
-Native to minecraft 1.18.2, tested up to 1.21.4
+Native to minecraft 1.18.2, tested up to 1.21.10
 
 ## Requires
-- WorldEdit (Strictly **not FAWE**, unfortunately)
+- FAWE
 - LuckPerms
+- VoidGen
+- WorldGuard
