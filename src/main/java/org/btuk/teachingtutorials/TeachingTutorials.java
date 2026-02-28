@@ -72,8 +72,13 @@ public class TeachingTutorials extends JavaPlugin
     /**
      * A list of all active virtual block groups.
      * Each task's virtual blocks are stored in a group and placed here when they are active and need to be displayed
+     * -- GETTER --
+     *
+     * @return A reference to the list of active virtual block groups
+
      */
-    private Stack<VirtualBlockGroup<Location, BlockData>> virtualBlockGroups;
+    @Getter
+    private Stack<VirtualBlockGroup<org.bukkit.Location, BlockData>> virtualBlockGroups;
 
     /** Identifies which world edit is being used */
     public WorldEditImplementation worldEditImplementation;
@@ -90,6 +95,39 @@ public class TeachingTutorials extends JavaPlugin
     @Override
     public void onEnable()
     {
+        //Set the static instance of the config to the config of this instance
+        TeachingTutorials.config = this.getConfig();
+        saveDefaultConfig();
+
+        if (!config.getBoolean("Enabled"))
+        {
+            getLogger().warning("Teaching Tutorials is disabled, enable in config");
+            this.setEnabled(false);
+            return;
+        }
+
+        //-------------------------------------------------------------------------
+        //----------------------------------MySQL----------------------------------
+        //-------------------------------------------------------------------------
+        //Initiate the DB connection object and attempt set up from config and connect
+        dbConnection = new DBConnection();
+        dbConnection.mysqlSetup(this.getConfig());
+
+        //Test whether database connected
+        if (dbConnection.connect())
+        {
+            getLogger().log(Level.INFO, ChatColor.GREEN + "MySQL database connected");
+
+            //Creates the tables of the database
+            createTables();
+        }
+        else
+        {
+            getLogger().warning("MySQL database connection failed, disabling plugin");
+            this.setEnabled(false);
+            return;
+        }
+
         //Checks the existence of the soft dependencies
         if (!Bukkit.getPluginManager().isPluginEnabled("DecentHolograms"))
         {
@@ -136,36 +174,10 @@ public class TeachingTutorials extends JavaPlugin
             return;
         }
 
-        //Set the static instance of the config to the config of this instance
-        TeachingTutorials.config = this.getConfig();
-        saveDefaultConfig();
-
         //Initialise the arrays
         players = new ArrayList<>();
         activePlaythroughs = new ArrayList<>();
         virtualBlockGroups = new Stack<>();
-
-        //-------------------------------------------------------------------------
-        //----------------------------------MySQL----------------------------------
-        //-------------------------------------------------------------------------
-        //Records whether there were any failures connecting to the database
-        boolean bSuccess;
-
-        //Initiate the DB connection object
-        dbConnection = new DBConnection();
-
-        //Attempt set up from config and connect
-        dbConnection.mysqlSetup(this.getConfig());
-        bSuccess = dbConnection.connect();
-
-        //Test whether database connected
-        if (bSuccess)
-        {
-            getLogger().log(Level.INFO, ChatColor.GREEN + "MySQL database connected");
-
-            //Creates the tables of the database
-            createTables();
-        }
 
         //----------------------------------------
         //-----------Load New Tutorials-----------
@@ -359,9 +371,9 @@ public class TeachingTutorials extends JavaPlugin
             {
                 iFailedCalculations++;
                 getLogger().log(Level.INFO, ChatColor.YELLOW +"Calculation ongoing, not initiating a new one");
-                long lSecondsPerLoop = 6L/20L; // = second per tick * ticks per loop
-                long iSecondsSinceFailedCalculation = iFailedCalculations * lSecondsPerLoop;
-                if (iSecondsSinceFailedCalculation >= 15)
+                double dSecondsPerLoop = 6d/20d; // = second per tick * ticks per loop
+                double iSecondsSinceFailedCalculation = iFailedCalculations * dSecondsPerLoop;
+                if (iSecondsSinceFailedCalculation >= 15 && WorldEdit.pendingCalculations.peek() != null)
                 {
                     WorldEdit.pendingCalculations.peek().terminateCalculation();
                 }
@@ -459,15 +471,6 @@ public class TeachingTutorials extends JavaPlugin
     {
         //Resets the views and marks the group as stale
         virtualBlocks.removeBlocks();
-    }
-
-    /**
-     *
-     * @return A reference to the list of active virtual block groups
-     */
-    public Stack<VirtualBlockGroup<org.bukkit.Location, BlockData>> getVirtualBlockGroups()
-    {
-        return virtualBlockGroups;
     }
 
     /**
