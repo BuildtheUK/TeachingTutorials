@@ -48,7 +48,8 @@ public class JoinLeaveEvent implements Listener
         plugin.players.add(user);
 
         //Teleports the player to the lobby
-        User.teleportPlayerToLobby(event.getPlayer(), plugin, plugin.getConfig().getLong("PlayerJoinTPDelay"));
+        if (plugin.getConfig().getBoolean("TeleportToSpawnOnJoin", true))
+            User.teleportPlayerToLobby(event.getPlayer(), plugin, plugin.getConfig().getLong("PlayerJoinTPDelay"));
     }
 
     /**
@@ -87,6 +88,7 @@ public class JoinLeaveEvent implements Listener
         }
 
         //Teleports the player to the lobby
-        User.teleportPlayerToLobby(event.getPlayer(), plugin, 0);
+        if (plugin.getConfig().getBoolean("TeleportToSpawnOnJoin", true))
+            User.teleportPlayerToLobby(event.getPlayer(), plugin, 0);
     }
 }

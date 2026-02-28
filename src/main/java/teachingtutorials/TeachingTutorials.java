@@ -211,40 +211,42 @@ public class TeachingTutorials extends JavaPlugin
 
         PlayerUtils.protectedItems.add(menu);
 
-        //Initiates the slot index where the menu should be placed
-        iLearningMenuSlot = config.getInt("Learning_Menu_Slot");
+        //Gets the slot index where the menu should be placed
+        iLearningMenuSlot = config.getInt("Learning_Menu_Slot", 0);
 
-        //Repeating schedule - updates the learning menu slot to make sure all player always have the learning menu icon
-        this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
-            public void run()
-            {
-                //Stores the item in the slot where the learning menu ought to be
-                ItemStack currentItemInSlot;
-
-                //Goes through all players
-                for (Player p : Bukkit.getOnlinePlayers())
+        if (iLearningMenuSlot > 0 && iLearningMenuSlot < 10)
+        {
+            //Repeating schedule - updates the learning menu slot to make sure all player always have the learning menu icon
+            this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+                public void run()
                 {
-                    //Gets the item in the slot where the learning menu ought to be
-                    currentItemInSlot = p.getInventory().getItem(iLearningMenuSlot - 1);
+                    //Stores the item in the slot where the learning menu ought to be
+                    ItemStack currentItemInSlot;
 
-                    //Updates the slot if necessary
-                    if (currentItemInSlot == null)
+                    //Goes through all players
+                    for (Player p : Bukkit.getOnlinePlayers())
                     {
-                        p.getInventory().setItem(iLearningMenuSlot - 1, menu);
-                    }
-                    else if (!currentItemInSlot.equals(menu))
-                    {
-                        //Attempts to move the current item to a free slot if there is one available
-                        int iEmptySlot = PlayerUtils.getAvailableHotbarSlot(p);
-                        if (iEmptySlot != -1)
-                            p.getInventory().setItem(iEmptySlot, currentItemInSlot);
+                        //Gets the item in the slot where the learning menu ought to be
+                        currentItemInSlot = p.getInventory().getItem(iLearningMenuSlot - 1);
 
-                        p.getInventory().setItem(iLearningMenuSlot - 1, menu);
+                        //Updates the slot if necessary
+                        if (currentItemInSlot == null)
+                        {
+                            p.getInventory().setItem(iLearningMenuSlot - 1, menu);
+                        }
+                        else if (!currentItemInSlot.equals(menu))
+                        {
+                            //Attempts to move the current item to a free slot if there is one available
+                            int iEmptySlot = PlayerUtils.getAvailableHotbarSlot(p);
+                            if (iEmptySlot != -1)
+                                p.getInventory().setItem(iEmptySlot, currentItemInSlot);
+
+                            p.getInventory().setItem(iLearningMenuSlot - 1, menu);
+                        }
                     }
                 }
-            }
-        }, 0L, config.getLong("Menu_Icon_Refresh_Period"));
-
+            }, 0L, config.getLong("Menu_Icon_Refresh_Period"));
+        }
 
         //-----------------------------------------------
         //--------- Initialises the Gui Manager ---------
