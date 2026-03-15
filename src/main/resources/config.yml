@@ -6,6 +6,9 @@ MySQL_Database_Information:
   username: newuser1
   password: xxxx
 
+# Enable
+Enabled: false
+
 # Teleport to spawn on joining (useful for when TeachingTutorials has a dedicated server)
 TeleportToSpawnOnJoin: true
 

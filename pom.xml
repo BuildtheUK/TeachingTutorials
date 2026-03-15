@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>me.bteuk</groupId>
+    <groupId>org.btuk</groupId>
     <artifactId>TeachingTutorials</artifactId>
-    <version>1.14.2</version>
+    <version>1.14.3</version>
     <packaging>jar</packaging>
 
     <name>TeachingTutorials</name>
@@ -60,6 +60,7 @@
                                 </filter>
                                 <filter>
                                     <artifact>com.github.BTEUK:*</artifact>
+                                    <artifact>com.github.BuildtheUK:*</artifact>
                                     <excludes>
                                         <exclude>net/kyori/**</exclude>
                                         <exclude>com/google/**</exclude>
@@ -162,7 +163,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.BTEUK</groupId>
+            <groupId>com.github.BuildtheUK</groupId>
             <artifactId>terraminusminus</artifactId>
             <version>41d3843a79</version>
             <exclusions>
@@ -173,12 +174,12 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.BTEUK</groupId>
+            <groupId>com.github.BuildtheUK</groupId>
             <artifactId>TeachingTutorialsAPI</artifactId>
             <version>970d3dc3f7</version>
         </dependency>
         <dependency>
-            <groupId>com.github.BTEUK</groupId>
+            <groupId>com.github.BuildtheUK</groupId>
             <artifactId>BTEUKLib</artifactId>
             <version>a26512cb12</version>
         </dependency>
