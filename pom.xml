@@ -6,7 +6,7 @@
 
     <groupId>org.btuk</groupId>
     <artifactId>TeachingTutorials</artifactId>
-    <version>1.14.3</version>
+    <version>1.14.4</version>
     <packaging>jar</packaging>
 
     <name>TeachingTutorials</name>
