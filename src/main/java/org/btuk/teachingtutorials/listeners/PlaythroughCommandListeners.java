@@ -110,7 +110,7 @@ public class PlaythroughCommandListeners implements Listener
 
                 player.sendMessage(tMessage);
                 Component message = Component.text("Click here to view the coordinates in Google Maps.", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false);
-                message = message.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, "https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
+                message = message.clickEvent(ClickEvent.openUrl("https://www.google.com/maps/@?api=1&map_action=map&basemap=satellite&zoom=21&center=" + coords[1] + "," + coords[0]));
                 player.sendMessage(message);
             }
             catch (OutOfProjectionBoundsException e)
