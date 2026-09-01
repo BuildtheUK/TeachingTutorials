@@ -114,8 +114,9 @@
             <url>https://jitpack.io</url>
         </repository>
         <repository>
-            <id>DaPorkchop_</id>
-            <url>https://maven.daporkchop.net/</url>
+            <id>reposilite-repository-releases</id>
+            <name>BuildTheEarth</name>
+            <url>https://maven.buildtheearth.net/releases</url>
         </repository>
         <repository>
             <id>Sponge</id>
@@ -163,15 +164,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.BuildtheUK</groupId>
-            <artifactId>terraminusminus</artifactId>
-            <version>41d3843a79</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>net.buildtheearth.terraminusminus</groupId>
+            <artifactId>terraminusminus-bukkit</artifactId>
+            <version>2.2.1-1.21.8</version>
         </dependency>
         <dependency>
             <groupId>com.github.BuildtheUK</groupId>
