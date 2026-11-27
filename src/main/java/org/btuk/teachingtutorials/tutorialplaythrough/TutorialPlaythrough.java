@@ -320,7 +320,7 @@ public abstract class TutorialPlaythrough
 
     /**
      * Displays all of the virtual blocks for this tutorial and location up to and including the provided step and stage
-     * @param iStage The stage up to and including which to display the blocks for (1 indexed)
+     * @param iStage The stage up to and including which to display the blocks for (1 indexed). Including the last incompleted stage.
      * @param iStep The step within the aforementioned stage up to and including which to display the blocks up to (1 indexed)
      */
     public void displayVirtualBlocks(int iStage, int iStep)
