@@ -196,7 +196,7 @@ public class Lesson extends TutorialPlaythrough
                     +" and LocationID = "+this.location.getLocationID());
 
             //Re-displays virtual blocks of steps already complete
-            displayVirtualBlocks(iStageIndex, iStepToStart-1);
+            displayVirtualBlocks(iStageIndex+1, iStepToStart-1);
         }
 
 
