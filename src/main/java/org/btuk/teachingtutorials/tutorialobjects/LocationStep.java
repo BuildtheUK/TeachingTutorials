@@ -462,7 +462,7 @@ public class LocationStep
             linkMessage = Component.text("Click here to access a video walk-through for this step !", NamedTextColor.GREEN);
 
             //Create the click event
-            ClickEvent openLinkEvent = ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, this.szVideoWalkthroughLink);
+            ClickEvent openLinkEvent = ClickEvent.openUrl(this.szVideoWalkthroughLink);
 
             //Add the click event to the message
             linkMessage = linkMessage.clickEvent(openLinkEvent);
