@@ -13,7 +13,7 @@ It will provide a foundation for a tutorials system which can be used throughout
 
 
 ## Versions
-Native to minecraft 1.18.2, tested up to 1.21.10
+Native to Minecraft version 1.18.2, confirmed to work up to 26.3
 
 ## Requires
 - FAWE
